@@ -1,5 +1,57 @@
 from odoo import http
+from odoo.addons.website_sale.controllers.main import WebsiteSale
 from odoo.http import request
+
+
+class DarAlHadayaWebsiteSale(WebsiteSale):
+    """Add simple, client-manageable Occasion and Personalization filters."""
+
+    def _get_search_options(self, **kwargs):
+        options = super()._get_search_options(**kwargs)
+        try:
+            product_category_id = int(request.httprequest.args.get('product_category', 0))
+        except (TypeError, ValueError):
+            product_category_id = 0
+        options['dah_product_category_id'] = product_category_id
+        occasion_values = request.httprequest.args.getlist('occasion')
+        occasion_ids = [int(value) for value in occasion_values if value.isdigit()]
+        options['dah_occasions'] = request.env['dah.occasion'].sudo().search([
+            ('id', 'in', occasion_ids), ('active', '=', True),
+        ]).ids
+        options['dah_personalized'] = request.httprequest.args.get('personalized') == '1'
+        return options
+
+    def _shop_lookup_products(self, options, post, search, website):
+        fuzzy_search_term, product_count, products = super()._shop_lookup_products(
+            options, post, search, website
+        )
+        extra_domain = []
+        if options.get('dah_product_category_id'):
+            extra_domain.append(('categ_id', 'child_of', options['dah_product_category_id']))
+        if options.get('dah_occasions'):
+            extra_domain.append(('dah_occasion_ids', 'in', options['dah_occasions']))
+        if options.get('dah_personalized'):
+            extra_domain.append(('dah_personalized', '=', True))
+        if extra_domain:
+            products = products.filtered_domain(extra_domain)
+            product_count = len(products)
+        return fuzzy_search_term, product_count, products
+
+    def _shop_get_query_url_kwargs(
+        self, search, min_price, max_price, order=None, tags=None, **kwargs
+    ):
+        values = super()._shop_get_query_url_kwargs(
+            search, min_price, max_price, order=order, tags=tags, **kwargs
+        )
+        occasions = request.httprequest.args.getlist('occasion')
+        product_category = request.httprequest.args.get('product_category')
+        if product_category:
+            values['product_category'] = product_category
+        if occasions:
+            values['occasion'] = occasions
+        if request.httprequest.args.get('personalized') == '1':
+            values['personalized'] = '1'
+        return values
 
 
 class DarAlHadayaWebsite(http.Controller):

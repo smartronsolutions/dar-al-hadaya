@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     DAR AL HADAYA — SHOP PAGE (/shop)
+     Customises the standard website_sale product listing page:
+       1. Shop hero  -> "Shop Gifts" title + breadcrumb + banner image
+                        (full-width, above the sidebar + product grid)
+       2. Feature strip below the product grid (Fast Delivery / Premium
+          Quality / Personalized Gifts / Secure Payment / Easy Returns)
+     The rest of the layout (filter sidebar, product cards, price slider)
+     is restyled in ../static/src/css/dar_al_hadaya.css under the
+     .o_wsale_products_page scope.
+     ══════════════════════════════════════════════════════════════════ -->
+
+<template id="dar_al_hadaya_shop_page" inherit_id="website_sale.products" name="Dar Al Hadaya Shop Page">
+
+    <!-- Full-width breadcrumb hero on /shop and every valid category route. -->
+    <xpath expr="//div[hasclass('o_wsale_products_main_row')]" position="before">
+        <div class="dah-shop-hero" t-if="not search">
+            <div class="dah-shop-hero__text">
+                <h1 class="dah-shop-title" t-out="category.name if category else 'Shop Gifts'"/>
+                <nav class="dah-shop-breadcrumb" aria-label="breadcrumb">
+                    <a href="/">Home</a>
+                    <span class="dah-shop-breadcrumb__sep" aria-hidden="true">&#8250;</span>
+                    <a t-if="category" href="/shop">Shop</a>
+                    <span t-if="category" class="dah-shop-breadcrumb__sep" aria-hidden="true">&#8250;</span>
+                    <span class="dah-shop-breadcrumb__current" t-out="category.name if category else 'Shop'"/>
+                </nav>
+            </div>
+            <div class="dah-shop-hero__img">
+                <img src="/dar_al_hadaya/static/src/img/banners/Breadcrumb%20banner.png" alt="Dar Al Hadaya shop gifts" loading="eager"/>
+            </div>
+        </div>
+    </xpath>
+
+    <!-- Hide the default "All products" title (replaced by the hero) -->
+    <xpath expr="//h1[hasclass('o_wsale_shop_title')]" position="attributes">
+        <attribute name="class" add="d-none" separator=" "/>
+    </xpath>
+    <xpath expr="//t[@t-call='website_sale.products_breadcrumb']" position="replace"/>
+
+    <!-- Remove Odoo's top category filmstrip and variant-attribute filters. -->
+    <xpath expr="//t[@t-if='opt_wsale_categories_top and category_entries']" position="replace"/>
+    <xpath expr="//div[@t-if='opt_wsale_categories']" position="replace"/>
+    <xpath expr="//t[@t-call='website_sale.pricelist_list']" position="replace"/>
+
+    <!-- Desktop: count and Best Selling share the row directly above products. -->
+    <xpath expr="//div[hasclass('products_header')]" position="inside">
+        <p class="dah-shop-result-count dah-shop-result-count--desktop d-none d-lg-block" t-if="products">
+            Showing
+            <t t-out="pager.get('offset', 0) + 1"/>
+            &#8211;
+            <t t-out="min(pager.get('offset', 0) + len(products), search_count)"/>
+            of
+            <t t-out="search_count"/>
+            products
+        </p>
+    </xpath>
+
+    <!-- Mobile: Filter &amp; Sort bar first, then the product count. -->
+    <xpath expr="//div[hasclass('products_header')]" position="after">
+        <p class="dah-shop-result-count dah-shop-result-count--mobile d-lg-none" t-if="products">
+            Showing
+            <t t-out="pager.get('offset', 0) + 1"/>
+            &#8211;
+            <t t-out="min(pager.get('offset', 0) + len(products), search_count)"/>
+            of
+            <t t-out="search_count"/>
+            products
+        </p>
+    </xpath>
+
+    <!-- "Filter by" heading at the top of the sidebar -->
+    <xpath expr="//aside[@id='products_grid_before']" position="inside">
+        <div class="dah-shop-filters-head">
+            <span class="dah-shop-filters__title">Filter by</span>
+            <a
+                class="dah-shop-filters__clear"
+                t-att-href="keep(product_category=0, occasion=0, personalized=0, attribute_values=0, tags=0, min_price=0, max_price=0)"
+            >Clear all</a>
+        </div>
+    </xpath>
+
+    <!-- Categories come directly from the Category field (categ_id) of live products. -->
+    <xpath expr="//t[@t-call='website_sale.filter_products_price']" position="before">
+        <section class="dah-shop-filter-section dah-shop-product-categories">
+            <h5>Categories</h5>
+            <t t-set="selected_product_category" t-value="int(request.httprequest.args.get('product_category', 0)) if request.httprequest.args.get('product_category', '').isdigit() else 0"/>
+            <t t-set="dah_shop_products" t-value="request.env['product.template'].sudo().search(website.sale_product_domain())"/>
+            <t t-set="dah_product_categories" t-value="dah_shop_products.mapped('categ_id').sorted(key=lambda product_category: ((product_category.name or '').lower(), product_category.id))"/>
+            <label class="dah-shop-filter-check">
+                <input
+                    type="radio"
+                    name="product_category"
+                    value="0"
+                    t-att-checked="not selected_product_category"
+                    t-att-data-dah-filter-url="keep(product_category=0, page=0)"
+                />
+                <span>All Categories</span>
+            </label>
+            <label class="dah-shop-filter-check" t-foreach="dah_product_categories" t-as="product_category">
+                <input
+                    type="radio"
+                    name="product_category"
+                    t-att-value="product_category.id"
+                    t-att-checked="selected_product_category == product_category.id"
+                    t-att-data-dah-filter-url="keep(product_category=product_category.id, page=0)"
+                />
+                <span t-out="product_category.name"/>
+            </label>
+        </section>
+    </xpath>
+
+    <!-- Customer-facing filters, ordered after Price Range. -->
+    <xpath expr="//t[@t-call='website_sale.filter_products_price']" position="after">
+        <section class="dah-shop-filter-section">
+            <h5>Occasions</h5>
+            <t t-set="active_occasions" t-value="request.httprequest.args.getlist('occasion')"/>
+            <t t-set="dah_available_occasions" t-value="dah_shop_products.mapped('dah_occasion_ids').filtered('active').sorted(key=lambda occasion: (occasion.sequence, (occasion.name or '').lower(), occasion.id))"/>
+            <t t-foreach="dah_available_occasions" t-as="occasion_item">
+                <label class="dah-shop-filter-check">
+                    <input
+                        type="checkbox"
+                        name="occasion"
+                        t-att-value="occasion_item.id"
+                        t-att-checked="str(occasion_item.id) in active_occasions"
+                        t-att-data-dah-filter-url="keep(occasion=(active_occasions + [str(occasion_item.id)]) if str(occasion_item.id) not in active_occasions else [value for value in active_occasions if value != str(occasion_item.id)], page=0)"
+                    />
+                    <span t-out="occasion_item.name"/>
+                </label>
+            </t>
+        </section>
+
+        <section class="dah-shop-filter-section">
+            <h5>Personalization</h5>
+            <label class="dah-shop-filter-check">
+                <input
+                    type="checkbox"
+                    name="personalized"
+                    value="1"
+                    t-att-checked="request.httprequest.args.get('personalized') == '1'"
+                    t-att-data-dah-filter-url="keep(personalized=0 if request.httprequest.args.get('personalized') == '1' else 1, page=0)"
+                />
+                <span>Personalized Only</span>
+            </label>
+        </section>
+
+        <section class="dah-shop-filter-section dah-shop-sidebar-sort">
+            <h5>Sort By</h5>
+            <select class="form-select form-select-sm" aria-label="Sort products">
+                <t t-foreach="website_sale_sortable" t-as="sort_item">
+                    <option
+                        t-att-value="keep(order=sort_item[0], page=0)"
+                        t-att-selected="sort_item[0] == request.params.get('order', website.shop_default_sort)"
+                        t-out="sort_item[1]"
+                    />
+                </t>
+            </select>
+        </section>
+    </xpath>
+
+    <!-- Features strip, injected just before the footer -->
+    <xpath expr="//div[@id='oe_structure_website_sale_products_2']" position="after">
+        <div class="dah-shop-features">
+            <div class="dah-shop-feature">
+                <i class="fa fa-truck" aria-hidden="true"></i>
+                <span class="dah-shop-feature__t">Fast Delivery</span>
+                <span class="dah-shop-feature__d">Across Qatar</span>
+            </div>
+            <div class="dah-shop-feature">
+                <i class="fa fa-diamond" aria-hidden="true"></i>
+                <span class="dah-shop-feature__t">Premium Quality</span>
+                <span class="dah-shop-feature__d">Crafted with Care</span>
+            </div>
+            <div class="dah-shop-feature">
+                <i class="fa fa-gift" aria-hidden="true"></i>
+                <span class="dah-shop-feature__t">Personalized Gifts</span>
+                <span class="dah-shop-feature__d">Made-to-Order</span>
+            </div>
+            <div class="dah-shop-feature">
+                <i class="fa fa-lock" aria-hidden="true"></i>
+                <span class="dah-shop-feature__t">Secure Payment</span>
+                <span class="dah-shop-feature__d">100% Safe Transactions</span>
+            </div>
+            <div class="dah-shop-feature">
+                <i class="fa fa-undo" aria-hidden="true"></i>
+                <span class="dah-shop-feature__t">Easy Returns</span>
+                <span class="dah-shop-feature__d">Risk-Free Shopping</span>
+            </div>
+        </div>
+    </xpath>
+
+</template>
+
+<!-- Shop cards: image, name, price and a product-page Order Now link only. -->
+<template id="dar_al_hadaya_shop_product_card" inherit_id="website_sale.products_item" name="Dar Al Hadaya Shop Product Card">
+    <xpath expr="//t[@t-call='website_sale.product_variant_preview']" position="replace"/>
+    <xpath expr="//div[hasclass('oe_subdescription_wrapper')]" position="replace"/>
+    <xpath expr="//div[hasclass('o_wsale_product_rating_wrapper')]" position="replace"/>
+    <xpath expr="//div[hasclass('o_wsale_product_sub')]" position="replace">
+        <div class="dah-shop-card-bottom">
+            <t t-if="product_price" t-out="product_price"/>
+            <t t-else="">
+                <t t-set="template_price_vals" t-value="get_product_prices(product)"/>
+                <div class="dah-shop-card-price" t-if="template_price_vals['price_reduce'] or not website.prevent_zero_price_sale">
+                    <span t-out="template_price_vals['price_reduce']"
+                        t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                </div>
+            </t>
+            <a class="dah-shop-order-button" t-att-href="product_href">ORDER NOW</a>
+        </div>
+    </xpath>
+</template>
+
+<!-- Mobile Filter & Sort: use the same filters and order as the desktop sidebar. -->
+<template id="dar_al_hadaya_shop_mobile_filters" inherit_id="website_sale.o_wsale_offcanvas" name="Dar Al Hadaya Mobile Shop Filters">
+    <xpath expr="//div[@id='o_wsale_offcanvas_content']" position="replace">
+        <div id="o_wsale_offcanvas_content" class="dah-mobile-shop-filters flex-grow-1 overflow-auto">
+            <div class="dah-mobile-shop-filters__title">
+                <strong>Filter &amp; Sort</strong>
+                <a t-att-href="keep(product_category=0, occasion=0, personalized=0, attribute_values=0, tags=0, min_price=0, max_price=0)">Clear All</a>
+            </div>
+
+            <section class="dah-shop-filter-section dah-shop-product-categories">
+                <h5>Categories</h5>
+                <t t-set="selected_product_category" t-value="int(request.httprequest.args.get('product_category', 0)) if request.httprequest.args.get('product_category', '').isdigit() else 0"/>
+                <t t-set="dah_shop_products" t-value="request.env['product.template'].sudo().search(website.sale_product_domain())"/>
+                <t t-set="dah_product_categories" t-value="dah_shop_products.mapped('categ_id').sorted(key=lambda product_category: ((product_category.name or '').lower(), product_category.id))"/>
+                <label class="dah-shop-filter-check">
+                    <input type="radio" name="mobile_product_category" value="0"
+                        t-att-checked="not selected_product_category"
+                        t-att-data-dah-filter-url="keep(product_category=0, page=0)"/>
+                    <span>All Categories</span>
+                </label>
+                <label class="dah-shop-filter-check" t-foreach="dah_product_categories" t-as="product_category">
+                    <input type="radio" name="mobile_product_category"
+                        t-att-value="product_category.id"
+                        t-att-checked="selected_product_category == product_category.id"
+                        t-att-data-dah-filter-url="keep(product_category=product_category.id, page=0)"/>
+                    <span t-out="product_category.name"/>
+                </label>
+            </section>
+
+            <section class="dah-shop-filter-section dah-mobile-price-range" t-if="opt_wsale_filter_price">
+                <t t-call="website_sale.filter_products_price">
+                    <t t-set="isOffcanvas" t-value="True"/>
+                    <t t-set="_classes" t-valuef="dah-mobile-price-filter"/>
+                    <t t-set="_classes_title" t-valuef="p-0 mb-2"/>
+                </t>
+            </section>
+
+            <section class="dah-shop-filter-section">
+                <h5>Occasions</h5>
+                <t t-set="active_occasions" t-value="request.httprequest.args.getlist('occasion')"/>
+                <t t-set="dah_available_occasions" t-value="dah_shop_products.mapped('dah_occasion_ids').filtered('active').sorted(key=lambda occasion: (occasion.sequence, (occasion.name or '').lower(), occasion.id))"/>
+                <t t-foreach="dah_available_occasions" t-as="occasion_item">
+                    <label class="dah-shop-filter-check">
+                        <input type="checkbox" name="mobile_occasion"
+                            t-att-value="occasion_item.id"
+                            t-att-checked="str(occasion_item.id) in active_occasions"
+                            t-att-data-dah-filter-url="keep(occasion=(active_occasions + [str(occasion_item.id)]) if str(occasion_item.id) not in active_occasions else [value for value in active_occasions if value != str(occasion_item.id)], page=0)"/>
+                        <span t-out="occasion_item.name"/>
+                    </label>
+                </t>
+            </section>
+
+            <section class="dah-shop-filter-section">
+                <h5>Personalization</h5>
+                <label class="dah-shop-filter-check">
+                    <input type="checkbox" name="mobile_personalized" value="1"
+                        t-att-checked="request.httprequest.args.get('personalized') == '1'"
+                        t-att-data-dah-filter-url="keep(personalized=0 if request.httprequest.args.get('personalized') == '1' else 1, page=0)"/>
+                    <span>Personalized Only</span>
+                </label>
+            </section>
+
+            <section class="dah-shop-filter-section dah-shop-sidebar-sort">
+                <h5>Sort By</h5>
+                <select class="form-select form-select-sm" aria-label="Sort products">
+                    <t t-foreach="website_sale_sortable" t-as="sort_item">
+                        <option t-att-value="keep(order=sort_item[0], page=0)"
+                            t-att-selected="sort_item[0] == request.params.get('order', website.shop_default_sort)"
+                            t-out="sort_item[1]"/>
+                    </t>
+                </select>
+            </section>
+        </div>
+    </xpath>
+
+    <xpath expr="//div[hasclass('offcanvas-body')][last()]" position="replace"/>
+</template>
+
+</data>
+</odoo>

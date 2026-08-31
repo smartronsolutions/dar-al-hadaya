@@ -34,6 +34,11 @@
                       sequence="20"
                       groups="point_of_sale.group_pos_user"/>
         </menuitem>
+        <menuitem id="dar_al_hadaya_menu_occasions"
+                  name="Occasions"
+                  action="dar_al_hadaya_occasion_action"
+                  sequence="45"
+                  groups="sales_team.group_sale_salesman"/>
         <menuitem id="dar_al_hadaya_menu_website_content"
                   name="Website Content"
                   action="website.action_website_pages_list"

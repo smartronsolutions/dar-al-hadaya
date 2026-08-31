@@ -50,6 +50,20 @@
             this.wishlist();
             this.lowerNav();
             this.productPage();
+            this.shopFilters();
+        },
+
+        shopFilters: function () {
+            this.$$('[data-dah-filter-url]').forEach(input => {
+                input.addEventListener('change', () => {
+                    window.location.href = input.dataset.dahFilterUrl;
+                });
+            });
+            this.$$('.dah-shop-sidebar-sort select').forEach(select => {
+                select.addEventListener('change', () => {
+                    window.location.href = select.value;
+                });
+            });
         },
 
         /* ── header: hamburger menu toggle + Escape ───────────── */
@@ -74,8 +88,96 @@
             if (menuClose) { menuClose.addEventListener('click', () => setMenu(false)); }
             if (menuOverlay) { menuOverlay.addEventListener('click', () => setMenu(false)); }
             headerEl.querySelectorAll('.dah-nav a').forEach(link => link.addEventListener('click', () => setMenu(false)));
+            headerEl.querySelectorAll('.dah-mobile-submenu-toggle').forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const group = toggle.closest('.dah-mobile-nav-group');
+                    if (!group) { return; }
+                    headerEl.querySelectorAll('.dah-mobile-nav-group.dah-open').forEach(openGroup => {
+                        if (openGroup !== group) {
+                            openGroup.classList.remove('dah-open');
+                            const openToggle = openGroup.querySelector('.dah-mobile-submenu-toggle');
+                            if (openToggle) { openToggle.setAttribute('aria-expanded', 'false'); }
+                        }
+                    });
+                    const open = !group.classList.contains('dah-open');
+                    group.classList.toggle('dah-open', open);
+                    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                });
+            });
+
+            const plainText = value => {
+                const parsed = new DOMParser().parseFromString(String(value || ''), 'text/html');
+                return (parsed.body.textContent || '').trim();
+            };
+            const suggestionClosers = [];
+            const setupProductSearch = (inputSelector, suggestionsSelector) => {
+                const searchInput = this.$(inputSelector);
+                const suggestions = this.$(suggestionsSelector);
+                if (!searchInput || !suggestions) { return; }
+                let searchTimer;
+                let searchRequest = 0;
+                const hideSuggestions = () => {
+                    suggestions.classList.remove('dah-show');
+                    suggestions.replaceChildren();
+                };
+                suggestionClosers.push(hideSuggestions);
+                const renderSuggestions = data => {
+                    suggestions.replaceChildren();
+                    const results = data && data.results || [];
+                    if (!results.length) {
+                        const empty = document.createElement('div');
+                        empty.className = 'dah-mobile-search-empty';
+                        empty.textContent = 'No products found';
+                        suggestions.appendChild(empty);
+                    }
+                    results.forEach(product => {
+                        const link = document.createElement('a');
+                        link.className = 'dah-mobile-search-result';
+                        link.href = plainText(product.website_url) || '/shop';
+                        link.setAttribute('role', 'option');
+                        const image = document.createElement('img');
+                        const imageDoc = new DOMParser().parseFromString(String(product.image_url || ''), 'text/html');
+                        const sourceImage = imageDoc.querySelector('img');
+                        image.src = sourceImage && sourceImage.getAttribute('src') || '/web/static/img/placeholder.png';
+                        image.alt = '';
+                        const name = document.createElement('span');
+                        name.className = 'dah-mobile-search-result-name';
+                        name.textContent = plainText(product.name);
+                        const price = document.createElement('span');
+                        price.className = 'dah-mobile-search-result-price';
+                        price.textContent = plainText(product.detail);
+                        link.append(image, name, price);
+                        suggestions.appendChild(link);
+                    });
+                    suggestions.classList.add('dah-show');
+                };
+                searchInput.addEventListener('input', () => {
+                    window.clearTimeout(searchTimer);
+                    const term = searchInput.value.trim();
+                    if (term.length < 2) { hideSuggestions(); return; }
+                    const requestId = ++searchRequest;
+                    searchTimer = window.setTimeout(() => {
+                        dahRpc('/website/snippet/autocomplete', {
+                            search_type: 'products', term: term, order: 'name asc', limit: 6, max_nb_chars: 80,
+                            options: {displayImage: true, displayDescription: false, displayDetail: true, displayExtraLink: false, display_currency: true, allowFuzzy: true},
+                        }, false).then(data => {
+                            if (requestId === searchRequest && searchInput.value.trim() === term) { renderSuggestions(data); }
+                        }).catch(hideSuggestions);
+                    }, 220);
+                });
+                searchInput.addEventListener('focus', () => {
+                    if (suggestions.childElementCount) { suggestions.classList.add('dah-show'); }
+                });
+            };
+            setupProductSearch('#dah_mobile_search_input', '#dah_mobile_search_suggestions');
+            setupProductSearch('#dah_desktop_search_input', '#dah_desktop_search_suggestions');
+            document.addEventListener('click', event => {
+                if (!event.target.closest('.dah-mobile-search, .dah-desktop-search')) {
+                    suggestionClosers.forEach(close => close());
+                }
+            });
             document.addEventListener('keydown', e => {
-                if (e.key === 'Escape') { setMenu(false); }
+                if (e.key === 'Escape') { suggestionClosers.forEach(close => close()); setMenu(false); }
             });
         },
 
@@ -86,7 +188,7 @@
                     this.waNumber = res.number || '';
                     const waLink = 'https://wa.me/' + this.waNumber;
                     if (!this.waNumber) { return; }
-                    ['#dah_wa_link', '#dah_footer_wa_link', '#dah_footer_social_wa', '#dah_hero_wa'].forEach(sel => {
+                    ['#dah_wa_link', '#dah_mobile_wa_link', '#dah_footer_wa_link', '#dah_footer_social_wa', '#dah_hero_wa'].forEach(sel => {
                         const el = this.$(sel);
                         if (el) { el.href = waLink; }
                     });
@@ -335,20 +437,28 @@
         categoryScroller: function () {
             const rail = this.$('#dah_cat_scroll');
             if (!rail) { return; }
+
             let autoPaused = false;
             let autoPosition = rail.scrollLeft;
             let resumeTimer = null;
+            let dragging = false;
+
             const pauseAuto = () => {
                 autoPaused = true;
-                if (resumeTimer) { window.clearTimeout(resumeTimer); }
+                if (resumeTimer) { window.clearTimeout(resumeTimer); resumeTimer = null; }
             };
             const resumeAuto = (delay) => {
                 if (resumeTimer) { window.clearTimeout(resumeTimer); }
                 resumeTimer = window.setTimeout(() => {
+                    // Never let the autoplay resume while a mouse drag is
+                    // still in progress (e.g. mouseleave fired mid-drag).
+                    if (dragging) { return; }
                     autoPosition = rail.scrollLeft;
                     autoPaused = false;
                 }, delay || 0);
             };
+
+            // Arrow buttons.
             this.$$('[data-dah-cat-scroll]').forEach(button => {
                 button.addEventListener('click', () => {
                     pauseAuto();
@@ -356,47 +466,57 @@
                     const tile = rail.querySelector('.dah_cat_tile');
                     const step = tile ? tile.getBoundingClientRect().width + 20 : Math.max(180, rail.clientWidth * 0.45);
                     rail.scrollBy({left: direction * step * 2, behavior: 'smooth'});
-                    resumeAuto(1800);
+                    resumeAuto(2200);
                 });
             });
 
-            let dragging = false;
+            // Mouse drag (desktop only). Touch devices use the native
+            // overflow-x scroll, so swiping stays smooth and reliable.
             let moved = false;
             let startX = 0;
             let startScroll = 0;
             rail.addEventListener('pointerdown', event => {
-                if (event.pointerType === 'mouse' && event.button !== 0) { return; }
+                if (event.pointerType !== 'mouse' || event.button !== 0) { return; }
                 dragging = true;
-                pauseAuto();
                 moved = false;
                 startX = event.clientX;
                 startScroll = rail.scrollLeft;
+                pauseAuto();
+                try { rail.setPointerCapture(event.pointerId); } catch (err) {}
             });
             rail.addEventListener('pointermove', event => {
                 if (!dragging) { return; }
-                if (!moved && Math.abs(event.clientX - startX) > 10) {
+                const dx = event.clientX - startX;
+                if (!moved && Math.abs(dx) > 4) {
                     moved = true;
                     rail.classList.add('dah_dragging');
-                    rail.setPointerCapture(event.pointerId);
                 }
-                if (!moved) { return; }
-                rail.scrollLeft = startScroll - (event.clientX - startX);
+                if (moved) { rail.scrollLeft = startScroll - dx; }
             });
-            const stopDragging = event => {
+            const endDrag = event => {
                 if (!dragging) { return; }
                 dragging = false;
                 rail.classList.remove('dah_dragging');
                 if (rail.hasPointerCapture(event.pointerId)) { rail.releasePointerCapture(event.pointerId); }
                 resumeAuto(1800);
             };
-            rail.addEventListener('pointerup', stopDragging);
-            rail.addEventListener('pointercancel', stopDragging);
+            rail.addEventListener('pointerup', endDrag);
+            rail.addEventListener('pointercancel', endDrag);
+            rail.addEventListener('lostpointercapture', () => {
+                if (!dragging) { return; }
+                dragging = false;
+                rail.classList.remove('dah_dragging');
+                resumeAuto(1200);
+            });
+            // Don't let a completed drag trigger the tile links.
             rail.addEventListener('click', event => {
                 if (!moved) { return; }
                 event.preventDefault();
                 event.stopPropagation();
                 moved = false;
             }, true);
+
+            // Convert a vertical mouse wheel over the rail into a horizontal pan.
             rail.addEventListener('wheel', event => {
                 if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) { return; }
                 if (rail.scrollWidth <= rail.clientWidth) { return; }
@@ -406,6 +526,15 @@
                 resumeAuto(1800);
             }, {passive: false});
 
+            // Pause the autoplay while a touch user scrolls natively.
+            rail.addEventListener('touchstart', pauseAuto, {passive: true});
+            rail.addEventListener('touchend', () => resumeAuto(1800), {passive: true});
+            rail.addEventListener('mouseenter', pauseAuto);
+            rail.addEventListener('mouseleave', () => resumeAuto(600));
+            rail.addEventListener('focusin', pauseAuto);
+            rail.addEventListener('focusout', () => resumeAuto(600));
+
+            // Autoplay (ping-pong).
             let autoDirection = 1;
             let previousFrame = 0;
             const autoScroll = timestamp => {
@@ -413,7 +542,7 @@
                 const elapsed = Math.min(timestamp - previousFrame, 50);
                 previousFrame = timestamp;
                 const maxScroll = rail.scrollWidth - rail.clientWidth;
-                if (!autoPaused && !document.hidden && maxScroll > 1) {
+                if (!autoPaused && !dragging && !document.hidden && maxScroll > 1) {
                     autoPosition += autoDirection * elapsed * 0.018;
                     if (autoPosition >= maxScroll) {
                         autoPosition = maxScroll;
@@ -426,10 +555,6 @@
                 }
                 window.requestAnimationFrame(autoScroll);
             };
-            rail.addEventListener('mouseenter', pauseAuto);
-            rail.addEventListener('mouseleave', () => resumeAuto(500));
-            rail.addEventListener('focusin', pauseAuto);
-            rail.addEventListener('focusout', () => resumeAuto(500));
             window.requestAnimationFrame(autoScroll);
         },
 

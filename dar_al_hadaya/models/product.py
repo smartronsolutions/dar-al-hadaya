@@ -1,12 +1,42 @@
 import base64
 from pathlib import Path
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.fields import Domain
+
+
+class Website(models.Model):
+    _inherit = 'website'
+
+    @api.model
+    def _dah_configure_shop_layout(self):
+        """Keep the Dar Al Hadaya catalogue at four columns and 20 items."""
+        website = self.env.ref('website.default_website', raise_if_not_found=False)
+        if website:
+            website.write({'shop_ppr': 4, 'shop_ppg': 20})
+        return True
+
+    @staticmethod
+    def _get_product_sort_mapping():
+        """Use the customer-facing wording requested for the main shop sort."""
+        return [
+            ('website_sequence asc', _('Best Selling')),
+            ('publish_date desc', _('Newest Arrivals')),
+            ('name asc', _('Name (A-Z)')),
+            ('list_price asc', _('Price - Low to High')),
+            ('list_price desc', _('Price - High to Low')),
+        ]
 
 
 class ProductPublicCategory(models.Model):
     _inherit = 'product.public.category'
+
+    dah_for_dar_al_hadaya = fields.Boolean(
+        string='For Dar Al Hadaya',
+        default=False,
+        index=True,
+        help='Show this category automatically in the Dar Al Hadaya homepage Shop by Category section.',
+    )
 
     dah_navigation_category = fields.Boolean(
         string='Dar Al Hadaya Navigation Category',
@@ -56,6 +86,16 @@ class ProductPublicCategory(models.Model):
             'Birthday Gifts': 'Birthday',
         }
         image_directory = Path(__file__).resolve().parents[1] / 'static' / 'src' / 'img' / 'categories'
+        home_seed_names = {
+            'Islamic Frames', 'Qatar Pin', '3D Keychain', 'Personalized Frames',
+            'Newborn & Baby Gifts', 'Graduation Gifts', 'Wedding & Marriage Gifts',
+            'Birthday Gifts', 'Hajj & Umrah Gifts', 'Islamic Gifts',
+            'Corporate & Business Gifts', 'Jewelry & Premium Gifts',
+        }
+        migration_key = 'dar_al_hadaya.home_category_flag_initialized'
+        config = self.env['ir.config_parameter'].sudo()
+        initialize_home_flags = not config.get_param(migration_key)
+
         for category_name, fallback_images in category_images.items():
             public_category = self.search(
                 [('name', '=ilike', category_name)],
@@ -73,6 +113,8 @@ class ProductPublicCategory(models.Model):
             if not public_category:
                 public_category = self.create({'name': category_name})
             public_category.dah_navigation_category = True
+            if initialize_home_flags and category_name in home_seed_names:
+                public_category.dah_for_dar_al_hadaya = True
             image_candidates = (f'{category_name.lower()}.png', *fallback_images)
             image_path = next((image_directory / filename for filename in image_candidates if (image_directory / filename).is_file()), None)
             if image_path:
@@ -103,7 +145,34 @@ class ProductPublicCategory(models.Model):
             products_to_migrate.with_context(dah_skip_category_sync=True).write({
                 'categ_id': internal_category.id,
             })
+        if initialize_home_flags:
+            config.set_param(migration_key, '1')
         return True
+
+
+class DarAlHadayaOccasion(models.Model):
+    _name = 'dah.occasion'
+    _description = 'Gift Occasion'
+    _order = 'sequence, name, id'
+
+    name = fields.Char(required=True, translate=True, index=True)
+    sequence = fields.Integer(default=10)
+    active = fields.Boolean(default=True)
+    product_ids = fields.Many2many(
+        comodel_name='product.template',
+        relation='dah_product_template_occasion_rel',
+        column1='occasion_id',
+        column2='product_tmpl_id',
+        string='Products',
+    )
+    product_count = fields.Integer(compute='_compute_product_count')
+
+    _name_unique = models.Constraint('UNIQUE(name)', 'An occasion with this name already exists.')
+
+    @api.depends('product_ids')
+    def _compute_product_count(self):
+        for occasion in self:
+            occasion.product_count = len(occasion.product_ids)
 
 
 class ProductTemplate(models.Model):
@@ -119,6 +188,62 @@ class ProductTemplate(models.Model):
     """
 
     _inherit = 'product.template'
+
+    dah_occasion_ids = fields.Many2many(
+        comodel_name='dah.occasion',
+        relation='dah_product_template_occasion_rel',
+        column1='product_tmpl_id',
+        column2='occasion_id',
+        string='Occasions',
+        help='Occasions used by the customer-facing Shop filter and navigation.',
+    )
+    dah_occasion = fields.Char(
+        string='Legacy Occasion',
+        copy=False,
+        help='Previous fixed occasion value retained only for safe data migration.',
+    )
+
+    def init(self):
+        """Move values from the former Selection field into manageable records."""
+        self.env.cr.execute("""
+            SELECT column_name
+              FROM information_schema.columns
+             WHERE table_name = 'product_template' AND column_name = 'dah_occasion'
+        """)
+        if not self.env.cr.fetchone():
+            return
+        self.env.cr.execute("""
+            SELECT DISTINCT dah_occasion
+              FROM product_template
+             WHERE dah_occasion IS NOT NULL AND dah_occasion != ''
+        """)
+        legacy_values = [row[0] for row in self.env.cr.fetchall()]
+        legacy_labels = {
+            'ramadan': 'Ramadan', 'eid': 'Eid', 'baby_shower': 'Baby Shower',
+            'engagement': 'Engagement', 'housewarming': 'Housewarming',
+        }
+        Occasion = self.env['dah.occasion'].with_context(active_test=False)
+        for legacy_value in legacy_values:
+            occasion_name = legacy_labels.get(legacy_value, legacy_value.replace('_', ' ').title())
+            occasion = Occasion.search([('name', '=ilike', occasion_name)], limit=1)
+            if not occasion:
+                occasion = Occasion.create({'name': occasion_name})
+            self.env.cr.execute("""
+                INSERT INTO dah_product_template_occasion_rel (product_tmpl_id, occasion_id)
+                SELECT product.id, %s
+                  FROM product_template AS product
+                 WHERE product.dah_occasion = %s
+                   AND NOT EXISTS (
+                       SELECT 1 FROM dah_product_template_occasion_rel AS relation
+                        WHERE relation.product_tmpl_id = product.id
+                          AND relation.occasion_id = %s
+                   )
+            """, (occasion.id, legacy_value, occasion.id))
+    dah_personalized = fields.Boolean(
+        string='Personalization',
+        index=True,
+        help='Enable this when the product can be personalized. Customers can filter these products on the Shop page.',
+    )
 
     @api.model_create_multi
     def create(self, vals_list):

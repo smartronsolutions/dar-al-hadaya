@@ -38,15 +38,21 @@
          CUSTOM GIFTS, ISLAMIC GIFTS, NEW BABY, ABOUT US, CONTACT US). -->
     <xpath expr="//header" position="before">
         <header class="dah-site-header" id="dah_site_header">
+            <t t-set="dah_company" t-value="website.company_id"/>
+            <div class="dah-promo">
+                <span class="dah-promo__left">Free delivery on orders above QAR 200!</span>
+                <span class="dah-promo__right" t-if="dah_company.phone">Need help? <a t-att-href="'tel:%s' % dah_company.phone.replace(' ', '')" t-esc="dah_company.phone"/></span>
+            </div>
             <div class="dah-topbar">
 
                 <button class="dah-menu-btn" id="dah_menu_btn" type="button" aria-label="Open menu" aria-expanded="false">
                     <span></span><span></span><span></span>
                 </button>
 
-                <form class="dah-search dah-desktop-search" action="/shop" method="get" role="search">
+                <form class="dah-search dah-desktop-search" action="/shop" method="get" role="search" autocomplete="off">
                     <svg class="dah-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.2 16.2 4 4"/></svg>
-                    <input type="search" name="search" placeholder="Search gifts..." aria-label="Search gifts"/>
+                    <input id="dah_desktop_search_input" type="search" name="search" placeholder="Search gifts..." aria-label="Search gifts" aria-controls="dah_desktop_search_suggestions" aria-autocomplete="list"/>
+                    <div class="dah-desktop-search-suggestions" id="dah_desktop_search_suggestions" role="listbox" aria-live="polite"></div>
                 </form>
 
                 <a class="dah-brand" href="/" aria-label="Dar Al Hadaya home">
@@ -57,6 +63,17 @@
                     <a class="dah-action" href="#" id="dah_wa_link" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
                         <svg class="dah-icon" viewBox="0 0 24 24"><path d="M20.5 11.7a8.4 8.4 0 0 1-12.4 7.4L3.5 20.5l1.4-4.4a8.4 8.4 0 1 1 15.6-4.4Z"/><path d="M8.2 7.7c.4-.5.7-.3 1 .2l.8 1.7c.2.4-.2.8-.6 1.2.8 1.7 2 2.8 3.8 3.5.4-.5.8-1.1 1.2-1 .7.2 1.6.7 2 .9.5.2.5.7.3 1.1-.5 1.1-1.7 1.6-2.8 1.3-3.8-.8-6.8-3.6-7.6-6.2-.3-1 .7-2.4 1.9-2.7Z"/></svg>
                         <span>WhatsApp</span>
+                    </a>
+                    <a
+                        class="dah-action dah-account-action"
+                        t-att-href="'/web/login?redirect=/my/home' if request.env.user._is_public() else '/my/home'"
+                        aria-label="Open my account dashboard"
+                    >
+                        <svg class="dah-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="12" cy="7.5" r="3.5"/>
+                            <path d="M5.5 20v-2.2c0-3.2 2.9-5.8 6.5-5.8s6.5 2.6 6.5 5.8V20"/>
+                        </svg>
+                        <span>Account</span>
                     </a>
                     <button class="dah-action" id="dah_cart_btn" type="button" aria-label="Cart">
                         <svg class="dah-icon" viewBox="0 0 24 24"><path d="M2.5 4h2l2.1 10.2h10.8l2-7.2H6"/><circle cx="9" cy="18.5" r="1.2"/><circle cx="17" cy="18.5" r="1.2"/></svg>
@@ -69,7 +86,9 @@
             <nav class="dah-nav" aria-label="Main navigation">
                 <div class="dah-nav-inner">
                     <div class="dah-mobile-menu-head">
-                        <span>MENU</span>
+                        <a class="dah-mobile-menu-logo" href="/" aria-label="Dar Al Hadaya home">
+                            <img src="/dar_al_hadaya/static/images/logo.png" alt="Dar Al Hadaya"/>
+                        </a>
                         <button type="button" id="dah_menu_close" aria-label="Close menu">&#215;</button>
                     </div>
                     <t t-set="dah_public_categories" t-value="request.env['product.public.category'].sudo().search([('name', 'in', ['Occasions', 'Custom Gifts', 'Islamic Gifts', 'Newborn &amp; Baby Gifts'])])"/>
@@ -77,18 +96,42 @@
                     <t t-set="dah_custom_gifts" t-value="dah_public_categories.filtered(lambda category: category.name == 'Custom Gifts')[:1]"/>
                     <t t-set="dah_islamic_gifts" t-value="dah_public_categories.filtered(lambda category: category.name == 'Islamic Gifts')[:1]"/>
                     <t t-set="dah_new_baby" t-value="dah_public_categories.filtered(lambda category: category.name == 'Newborn &amp; Baby Gifts')[:1]"/>
-                    <form class="dah-mobile-search" action="/shop" method="get" role="search">
-                        <svg class="dah-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.2 16.2 4 4"/></svg>
-                        <input type="search" name="search" placeholder="Search gifts..." aria-label="Search gifts"/>
-                    </form>
-                    <a href="/">HOME</a>
-                    <a href="/shop">GIFTS <i class="dah-chev"></i></a>
-                    <a t-att-href="dah_occasions and '/shop/category/%s' % slug(dah_occasions) or '/shop'">OCCASIONS <i class="dah-chev"></i></a>
-                    <a t-att-href="dah_custom_gifts and '/shop/category/%s' % slug(dah_custom_gifts) or '/shop'">CUSTOM GIFTS</a>
-                    <a t-att-href="dah_islamic_gifts and '/shop/category/%s' % slug(dah_islamic_gifts) or '/shop'">ISLAMIC GIFTS</a>
-                    <a t-att-href="dah_new_baby and '/shop/category/%s' % slug(dah_new_baby) or '/shop'">NEW BABY</a>
-                    <a href="/about">ABOUT US</a>
-                    <a href="/contactus">CONTACT US</a>
+                    <t t-set="dah_navigation_products" t-value="request.env['product.template'].sudo().search(website.sale_product_domain())"/>
+                    <t t-set="dah_navigation_occasions" t-value="dah_navigation_products.mapped('dah_occasion_ids').filtered('active').sorted(key=lambda occasion: (occasion.sequence, (occasion.name or '').lower(), occasion.id))"/>
+                    <div class="dah-mobile-only">
+                        <form class="dah-mobile-search" action="/shop" method="get" role="search" autocomplete="off">
+                            <label class="dah-mobile-search-field" for="dah_mobile_search_input">
+                                <svg class="dah-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.2 16.2 4 4"/></svg>
+                                <input id="dah_mobile_search_input" type="search" name="search" placeholder="Search gifts..." aria-label="Search gifts" aria-controls="dah_mobile_search_suggestions" aria-autocomplete="list"/>
+                            </label>
+                            <button type="submit">SEARCH</button>
+                            <div class="dah-mobile-search-suggestions" id="dah_mobile_search_suggestions" role="listbox" aria-live="polite"></div>
+                        </form>
+                        <div class="dah-mobile-nav-list">
+                            <a class="dah-mobile-nav-row" href="/"><i class="fa fa-home"/><span>HOME</span></a>
+                            <a class="dah-mobile-nav-row" href="/shop"><i class="fa fa-gift"/><span>GIFTS</span></a>
+                            <div class="dah-mobile-nav-group" t-if="dah_navigation_occasions">
+                                <button class="dah-mobile-nav-row dah-mobile-submenu-toggle" type="button" aria-expanded="false"><i class="fa fa-calendar"/><span>OCCASIONS</span><i class="fa fa-angle-right dah-mobile-row-arrow"/></button>
+                                <div class="dah-mobile-submenu"><a t-foreach="dah_navigation_occasions" t-as="occasion" t-att-href="'/shop?occasion=%s' % occasion.id" t-out="occasion.name"/></div>
+                            </div>
+                            <a class="dah-mobile-nav-row" t-att-href="dah_custom_gifts and '/shop/category/%s' % slug(dah_custom_gifts) or '/shop'"><i class="fa fa-magic"/><span>CUSTOM GIFTS</span></a>
+                            <a class="dah-mobile-nav-row" t-att-href="dah_islamic_gifts and '/shop/category/%s' % slug(dah_islamic_gifts) or '/shop'"><i class="fa fa-building-o"/><span>ISLAMIC GIFTS</span></a>
+                            <a class="dah-mobile-nav-row" t-att-href="dah_new_baby and '/shop/category/%s' % slug(dah_new_baby) or '/shop'"><i class="fa fa-child"/><span>NEW BABY</span></a>
+                            <a class="dah-mobile-nav-row" href="/contactus"><i class="fa fa-envelope-o"/><span>CONTACT US</span></a>
+                        </div>
+                        <a class="dah-mobile-whatsapp" id="dah_mobile_wa_link" href="/contactus" target="_blank" rel="noopener"><i class="fa fa-whatsapp"/><span>Need help? <b>Chat on WhatsApp</b></span><i class="fa fa-angle-right"/></a>
+                    </div>
+                    <div class="dah-desktop-nav-links">
+                        <a href="/">HOME</a><a href="/shop">GIFTS</a>
+                        <div class="dah-desktop-nav-group" t-if="dah_navigation_occasions">
+                            <button class="dah-desktop-nav-toggle" type="button">OCCASIONS <i class="fa fa-angle-down"/></button>
+                            <div class="dah-desktop-nav-dropdown"><a t-foreach="dah_navigation_occasions" t-as="occasion" t-att-href="'/shop?occasion=%s' % occasion.id" t-out="occasion.name"/></div>
+                        </div>
+                        <a t-att-href="dah_custom_gifts and '/shop/category/%s' % slug(dah_custom_gifts) or '/shop'">CUSTOM GIFTS</a>
+                        <a t-att-href="dah_islamic_gifts and '/shop/category/%s' % slug(dah_islamic_gifts) or '/shop'">ISLAMIC GIFTS</a>
+                        <a t-att-href="dah_new_baby and '/shop/category/%s' % slug(dah_new_baby) or '/shop'">NEW BABY</a>
+                        <a href="/contactus">CONTACT US</a>
+                    </div>
                 </div>
             </nav>
             <button type="button" class="dah-menu-overlay" id="dah_menu_overlay" aria-label="Close menu"></button>
