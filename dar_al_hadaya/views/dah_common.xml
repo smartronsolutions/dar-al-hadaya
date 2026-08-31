@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     DAR AL HADAYA — COMMON WEBSITE ELEMENTS
+     Global layout pieces that appear on every website page, in the same
+     spirit as biighands_website/views/bh_common.xml:
+
+       1. dar_al_hadaya_common_layout   -> custom header + footer
+                                           (native Odoo header hidden,
+                                            native footer replaced)
+       2. dar_al_hadaya_cart_sidebar    -> order sidebar + overlay
+                                           ("Your Order" / "Add a Little
+                                            Extra" / Place Order on
+                                            WhatsApp)
+
+     Styling lives in ../static/src/css/dar_al_hadaya.css and behaviour
+     in ../static/src/js/dar_al_hadaya.js (loaded globally through the
+     manifest assets).
+     ══════════════════════════════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════════════════════════════
+     1. GLOBAL HEADER + FOOTER
+     ══════════════════════════════════════════════════════════════════ -->
+<template id="dar_al_hadaya_common_layout" inherit_id="website.layout" name="Dar Al Hadaya Common Layout">
+
+    <!-- Hide the native Odoo header -->
+    <xpath expr="//header" position="attributes">
+        <attribute name="style">display:none !important</attribute>
+    </xpath>
+
+    <!-- ── Custom header ──
+         Design source: Dar Al Hadaya responsive header spec.
+         Top bar: menu button + search (left), centered DAR AL HADAYA
+         brand with Arabic subtitle (right-to-left), WhatsApp + Cart
+         (right). Below: green gradient nav (HOME, GIFTS, OCCASIONS,
+         CUSTOM GIFTS, ISLAMIC GIFTS, NEW BABY, ABOUT US, CONTACT US). -->
+    <xpath expr="//header" position="before">
+        <header class="dah-site-header" id="dah_site_header">
+            <div class="dah-topbar">
+
+                <button class="dah-menu-btn" id="dah_menu_btn" type="button" aria-label="Open menu" aria-expanded="false">
+                    <span></span><span></span><span></span>
+                </button>
+
+                <form class="dah-search dah-desktop-search" action="/shop" method="get" role="search">
+                    <svg class="dah-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.2 16.2 4 4"/></svg>
+                    <input type="search" name="search" placeholder="Search gifts..." aria-label="Search gifts"/>
+                </form>
+
+                <a class="dah-brand" href="/" aria-label="Dar Al Hadaya home">
+                    <img class="dah-brand-logo-img" src="/dar_al_hadaya/static/images/logo.png" alt="Dar Al Hadaya"/>
+                </a>
+
+                <div class="dah-actions">
+                    <a class="dah-action" href="#" id="dah_wa_link" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+                        <svg class="dah-icon" viewBox="0 0 24 24"><path d="M20.5 11.7a8.4 8.4 0 0 1-12.4 7.4L3.5 20.5l1.4-4.4a8.4 8.4 0 1 1 15.6-4.4Z"/><path d="M8.2 7.7c.4-.5.7-.3 1 .2l.8 1.7c.2.4-.2.8-.6 1.2.8 1.7 2 2.8 3.8 3.5.4-.5.8-1.1 1.2-1 .7.2 1.6.7 2 .9.5.2.5.7.3 1.1-.5 1.1-1.7 1.6-2.8 1.3-3.8-.8-6.8-3.6-7.6-6.2-.3-1 .7-2.4 1.9-2.7Z"/></svg>
+                        <span>WhatsApp</span>
+                    </a>
+                    <button class="dah-action" id="dah_cart_btn" type="button" aria-label="Cart">
+                        <svg class="dah-icon" viewBox="0 0 24 24"><path d="M2.5 4h2l2.1 10.2h10.8l2-7.2H6"/><circle cx="9" cy="18.5" r="1.2"/><circle cx="17" cy="18.5" r="1.2"/></svg>
+                        <b class="dah-cart-count" id="dah_cart_badge">0</b>
+                        <span>Cart</span>
+                    </button>
+                </div>
+            </div>
+
+            <nav class="dah-nav" aria-label="Main navigation">
+                <div class="dah-nav-inner">
+                    <div class="dah-mobile-menu-head">
+                        <span>MENU</span>
+                        <button type="button" id="dah_menu_close" aria-label="Close menu">&#215;</button>
+                    </div>
+                    <t t-set="dah_public_categories" t-value="request.env['product.public.category'].sudo().search([('name', 'in', ['Occasions', 'Custom Gifts', 'Islamic Gifts', 'Newborn &amp; Baby Gifts'])])"/>
+                    <t t-set="dah_occasions" t-value="dah_public_categories.filtered(lambda category: category.name == 'Occasions')[:1]"/>
+                    <t t-set="dah_custom_gifts" t-value="dah_public_categories.filtered(lambda category: category.name == 'Custom Gifts')[:1]"/>
+                    <t t-set="dah_islamic_gifts" t-value="dah_public_categories.filtered(lambda category: category.name == 'Islamic Gifts')[:1]"/>
+                    <t t-set="dah_new_baby" t-value="dah_public_categories.filtered(lambda category: category.name == 'Newborn &amp; Baby Gifts')[:1]"/>
+                    <form class="dah-mobile-search" action="/shop" method="get" role="search">
+                        <svg class="dah-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.2 16.2 4 4"/></svg>
+                        <input type="search" name="search" placeholder="Search gifts..." aria-label="Search gifts"/>
+                    </form>
+                    <a href="/">HOME</a>
+                    <a href="/shop">GIFTS <i class="dah-chev"></i></a>
+                    <a t-att-href="dah_occasions and '/shop/category/%s' % slug(dah_occasions) or '/shop'">OCCASIONS <i class="dah-chev"></i></a>
+                    <a t-att-href="dah_custom_gifts and '/shop/category/%s' % slug(dah_custom_gifts) or '/shop'">CUSTOM GIFTS</a>
+                    <a t-att-href="dah_islamic_gifts and '/shop/category/%s' % slug(dah_islamic_gifts) or '/shop'">ISLAMIC GIFTS</a>
+                    <a t-att-href="dah_new_baby and '/shop/category/%s' % slug(dah_new_baby) or '/shop'">NEW BABY</a>
+                    <a href="/about">ABOUT US</a>
+                    <a href="/contactus">CONTACT US</a>
+                </div>
+            </nav>
+            <button type="button" class="dah-menu-overlay" id="dah_menu_overlay" aria-label="Close menu"></button>
+        </header>
+    </xpath>
+
+    <!-- Keep the native nodes available to dependent inherited views, but hide the extra strip. -->
+    <xpath expr="//div[hasclass('o_footer_copyright')]" position="attributes">
+        <attribute name="class" add="d-none" separator=" "/>
+        <attribute name="aria-hidden">true</attribute>
+    </xpath>
+
+    <!-- Responsive global footer, backed by Odoo website/company data. -->
+    <xpath expr="//div[@id='footer']" position="replace">
+        <div id="footer" class="dah_footer" t-if="not no_footer">
+            <t t-set="dah_footer_categories" t-value="request.env['product.public.category'].sudo().search([('name', 'in', ['Occasions', 'Custom Gifts', 'Islamic Gifts', 'Newborn &amp; Baby Gifts'])])"/>
+            <t t-set="dah_footer_occasions" t-value="dah_footer_categories.filtered(lambda category: category.name == 'Occasions')[:1]"/>
+            <t t-set="dah_footer_custom" t-value="dah_footer_categories.filtered(lambda category: category.name == 'Custom Gifts')[:1]"/>
+            <t t-set="dah_footer_islamic" t-value="dah_footer_categories.filtered(lambda category: category.name == 'Islamic Gifts')[:1]"/>
+            <t t-set="dah_footer_company" t-value="website.company_id"/>
+
+            <div class="dah_footer_ctas">
+                <a class="dah_footer_cta" href="/shop">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l1 13H4L5 8Z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
+                    <span>Shop Gifts</span><span class="dah_footer_arrow">&#8594;</span>
+                </a>
+                <a class="dah_footer_cta" href="/contactus" id="dah_footer_wa_link" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.7a8.4 8.4 0 0 1-12.4 7.4L3.5 20.5l1.4-4.4a8.4 8.4 0 1 1 15.6-4.4Z"/><path d="M8.2 7.7c.4-.5.7-.3 1 .2l.8 1.7c.2.4-.2.8-.6 1.2.8 1.7 2 2.8 3.8 3.5.4-.5.8-1.1 1.2-1 .7.2 1.6.7 2 .9.5.2.5.7.3 1.1-.5 1.1-1.7 1.6-2.8 1.3-3.8-.8-6.8-3.6-7.6-6.2-.3-1 .7-2.4 1.9-2.7Z"/></svg>
+                    <span>Chat on WhatsApp</span><span class="dah_footer_arrow">&#8594;</span>
+                </a>
+            </div>
+
+            <footer class="dah_footer_body">
+                <div class="dah_footer_main">
+                    <section class="dah_footer_brand">
+                        <a class="dah_footer_logo" href="/" aria-label="Dar Al Hadaya home">
+                            <img class="dah_footer_logo_img" src="/dar_al_hadaya/static/images/logo.png" alt="Dar Al Hadaya" loading="lazy"/>
+                        </a>
+                        <p>Thoughtful gifts for every occasion. Personalized with love, delivered with care.</p>
+                        <div class="dah_footer_socials">
+                            <a href="/contactus" id="dah_footer_social_wa" aria-label="WhatsApp" target="_blank" rel="noopener"><i class="fa fa-whatsapp"/></a>
+                            <a t-if="website.social_instagram" t-att-href="website.social_instagram" aria-label="Instagram" target="_blank" rel="noopener"><i class="fa fa-instagram"/></a>
+                            <a t-if="website.social_facebook" t-att-href="website.social_facebook" aria-label="Facebook" target="_blank" rel="noopener"><i class="fa fa-facebook"/></a>
+                            <a t-if="website.social_tiktok" t-att-href="website.social_tiktok" aria-label="TikTok" target="_blank" rel="noopener"><i class="fa fa-tiktok"/></a>
+                            <a t-if="website.social_youtube" t-att-href="website.social_youtube" aria-label="YouTube" target="_blank" rel="noopener"><i class="fa fa-youtube-play"/></a>
+                            <a t-if="website.social_linkedin" t-att-href="website.social_linkedin" aria-label="LinkedIn" target="_blank" rel="noopener"><i class="fa fa-linkedin"/></a>
+                        </div>
+                    </section>
+
+                    <section class="dah_footer_group">
+                        <h3>QUICK LINKS</h3><button class="dah_footer_toggle" type="button" aria-expanded="false">QUICK LINKS</button>
+                        <div class="dah_footer_content"><ul>
+                            <li><a href="/">Home</a></li><li><a href="/shop">Gifts</a></li>
+                            <li><a t-att-href="dah_footer_occasions and '/shop/category/%s' % slug(dah_footer_occasions) or '/shop'">Occasions</a></li>
+                            <li><a t-att-href="dah_footer_custom and '/shop/category/%s' % slug(dah_footer_custom) or '/shop'">Custom Gifts</a></li>
+                            <li><a t-att-href="dah_footer_islamic and '/shop/category/%s' % slug(dah_footer_islamic) or '/shop'">Islamic Gifts</a></li>
+                        </ul></div>
+                    </section>
+
+                    <section class="dah_footer_group">
+                        <h3>CUSTOMER SERVICE</h3><button class="dah_footer_toggle" type="button" aria-expanded="false">CUSTOMER SERVICE</button>
+                        <div class="dah_footer_content"><ul>
+                            <li><a href="/contactus">About &amp; Contact Us</a></li>
+                            <li><a href="/my/orders">My Orders &amp; Tracking</a></li>
+                            <li><a href="/terms">Returns, Refunds &amp; Terms</a></li>
+                            <li><a href="/contactus">Help &amp; Support</a></li>
+                        </ul></div>
+                    </section>
+
+                    <section class="dah_footer_group">
+                        <h3>INFO</h3><button class="dah_footer_toggle" type="button" aria-expanded="false">INFO</button>
+                        <div class="dah_footer_content"><ul>
+                            <li><a href="/terms">Terms &amp; Conditions</a></li>
+                            <li><a href="/contactus">Shipping Information</a></li>
+                            <li><a href="/contactus">Privacy Questions</a></li>
+                        </ul></div>
+                    </section>
+
+                    <section class="dah_footer_group">
+                        <h3>CONTACT US</h3><button class="dah_footer_toggle" type="button" aria-expanded="false">CONTACT US</button>
+                        <div class="dah_footer_content dah_footer_contact">
+                            <div class="dah_footer_contact_item" t-if="dah_footer_company.phone">
+                                <i class="fa fa-phone"/><a t-att-href="'tel:%s' % dah_footer_company.phone.replace(' ', '')" t-esc="dah_footer_company.phone"/>
+                            </div>
+                            <div class="dah_footer_contact_item" t-if="dah_footer_company.email">
+                                <i class="fa fa-envelope-o"/><a t-att-href="'mailto:%s' % dah_footer_company.email" t-esc="dah_footer_company.email"/>
+                            </div>
+                            <div class="dah_footer_contact_item" t-if="dah_footer_company.city or dah_footer_company.country_id">
+                                <i class="fa fa-map-marker"/><span><t t-esc="dah_footer_company.city"/><t t-if="dah_footer_company.city and dah_footer_company.country_id">, </t><t t-esc="dah_footer_company.country_id.name"/></span>
+                            </div>
+                            <a class="dah_footer_contact_fallback" href="/contactus" t-if="not (dah_footer_company.phone or dah_footer_company.email or dah_footer_company.city)">Contact our team</a>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="dah_footer_bottom">
+                    <span>&#169; <span id="dah_footer_year">2026</span> DAR AL HADAYA. All rights reserved.</span>
+                    <div class="dah_footer_payments" aria-label="Accepted payment methods">
+                        <img src="/dar_al_hadaya/static/src/img/payments/visa.svg" alt="Visa" loading="lazy"/>
+                        <img src="/dar_al_hadaya/static/src/img/payments/mastercard.svg" alt="Mastercard" loading="lazy"/>
+                        <img src="/dar_al_hadaya/static/src/img/payments/apple-pay.svg" alt="Apple Pay" loading="lazy"/>
+                        <img src="/dar_al_hadaya/static/src/img/payments/google-pay.svg" alt="Google Pay" loading="lazy"/>
+                    </div>
+                </div>
+            </footer>
+            <button class="dah_back_top" id="dah_back_top" type="button" aria-label="Back to top"><i class="fa fa-angle-up"/></button>
+        </div>
+    </xpath>
+</template>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     2. ORDER SIDEBAR
+     The customer is never taken to a traditional cart page: adding a
+     product opens this side panel with "Your Order", "Add a Little
+     Extra" add-ons, the total, customer name + WhatsApp number and a
+     Place Order button that completes the order on WhatsApp.
+     ══════════════════════════════════════════════════════════════════ -->
+<template id="dar_al_hadaya_cart_sidebar" inherit_id="website.layout" name="Dar Al Hadaya Order Sidebar">
+
+    <xpath expr="//div[@id='wrapwrap']" position="inside">
+        <div class="dah_cart_overlay" id="dah_cart_overlay"></div>
+
+        <aside class="dah_cart_sidebar" id="dah_cart_sidebar" aria-label="Your order">
+            <div class="dah_cart_head">
+                <h3>Your Order</h3>
+                <button type="button" class="dah_icon_btn dah_cart_close" id="dah_cart_close" aria-label="Close order panel">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <div class="dah_cart_body">
+                <!-- Your Order: filled by JS from /dah/cart/data -->
+                <div class="dah_cart_items" id="dah_cart_items">
+                    <div class="dah_cart_empty">Your order is empty.</div>
+                </div>
+
+                <!-- Add a Little Extra -->
+                <div class="dah_cart_extras" id="dah_cart_extras">
+                    <h4>Add a Little Extra</h4>
+                    <div class="dah_cart_addons" id="dah_cart_addons"></div>
+                </div>
+            </div>
+
+            <div class="dah_cart_foot">
+                <div class="dah_cart_total">
+                    <span>Total</span>
+                    <strong id="dah_cart_total">&#8211;</strong>
+                </div>
+                <input type="text" id="dah_customer_name" placeholder="Your name" autocomplete="name"/>
+                <input type="tel" id="dah_customer_phone" placeholder="WhatsApp number" autocomplete="tel"/>
+                <button type="button" class="dah_btn dah_btn_cta dah_btn_block" id="dah_place_order">Place Order</button>
+                <button type="button" class="dah_btn dah_btn_ghost dah_btn_block" id="dah_continue_shopping">Continue Shopping</button>
+            </div>
+        </aside>
+    </xpath>
+</template>
+
+</data>
+</odoo>

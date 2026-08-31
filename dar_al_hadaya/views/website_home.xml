@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+<template id="dar_al_hadaya_home" inherit_id="website.homepage" name="Dar Al Hadaya Home">
+    <xpath expr="//div[@id='wrap']" position="replace">
+        <div id="wrap" class="dah_page dah_home">
+            <t t-set="dah_products" t-value="request.env['product.template'].sudo().search(website.sale_product_domain(), order='website_sequence, id')"/>
+            <t t-set="dah_featured" t-value="dah_products.filtered('dah_featured')[:2] or dah_products[:2]"/>
+            <t t-set="dah_home_category_names" t-value="['Islamic Frames', 'Qatar Pin', '3D Keychain', 'Personalized Frames', 'Newborn &amp; Baby Gifts', 'Graduation Gifts', 'Wedding &amp; Marriage Gifts', 'Birthday Gifts', 'Hajj &amp; Umrah Gifts', 'Islamic Gifts', 'Corporate &amp; Business Gifts', 'Jewelry &amp; Premium Gifts']"/>
+            <t t-set="dah_categories" t-value="request.env['product.public.category'].sudo().search([('name', 'in', dah_home_category_names), ('website_id', 'in', [False, website.id])]).sorted(key=lambda category: dah_home_category_names.index(category.name))"/>
+            <t t-set="dah_new_baby" t-value="dah_categories.filtered(lambda category: category.name == 'Newborn &amp; Baby Gifts')[:1]"/>
+
+            <!-- Responsive autoplay hero carousel using the supplied banner assets. -->
+            <section class="dah_home_hero" aria-label="Gifts made personal">
+                <div class="dah_hero_slider" id="dah_hero_slider">
+                    <article class="dah_hero_slide dah_hero_slide_active">
+                        <a href="/shop" class="dah_home_banner_link"><img src="/dar_al_hadaya/static/src/img/banners/banner1.png" alt="Gifts Made Personal" width="1959" height="803" loading="eager" fetchpriority="high"/></a>
+                    </article>
+                    <article class="dah_hero_slide">
+                        <a href="/shop" class="dah_home_banner_link"><img src="/dar_al_hadaya/static/src/img/banners/banner1.2.png" alt="Thoughtful Gifts for Her" width="1774" height="887" loading="lazy"/></a>
+                    </article>
+                    <article class="dah_hero_slide">
+                        <a href="/shop" class="dah_home_banner_link"><img src="/dar_al_hadaya/static/src/img/banners/banner1.3.png" alt="Beautiful Gifts for Every Her" width="1774" height="887" loading="lazy"/></a>
+                    </article>
+                    <button type="button" class="dah_hero_arrow dah_hero_prev" id="dah_hero_prev" aria-label="Previous banner">&#8249;</button>
+                    <button type="button" class="dah_hero_arrow dah_hero_next" id="dah_hero_next" aria-label="Next banner">&#8250;</button>
+                </div>
+                <div class="dah_hero_dots" id="dah_hero_dots" aria-label="Choose banner">
+                    <button type="button" class="dah_hero_dot dah_hero_dot_active" data-index="0" aria-label="Banner 1"/>
+                    <button type="button" class="dah_hero_dot" data-index="1" aria-label="Banner 2"/>
+                    <button type="button" class="dah_hero_dot" data-index="2" aria-label="Banner 3"/>
+                </div>
+            </section>
+
+            <section class="dah_section dah_categories" id="dah_categories">
+                <div class="dah_section_head"><h2>Shop by Category</h2></div>
+                <div class="dah_category_rail">
+                    <button class="dah_cat_arrow dah_cat_prev" type="button" data-dah-cat-scroll="-1" aria-label="Previous categories">&#8249;</button>
+                    <div class="dah_cat_scroll" id="dah_cat_scroll">
+                    <t t-if="dah_categories">
+                        <a class="dah_cat_tile" t-foreach="dah_categories" t-as="category" t-att-href="'/shop/category/' + slug(category)">
+                            <span class="dah_cat_tile_media">
+                                <img t-if="category.image_1920" t-att-src="website.image_url(category, 'image_512')" t-att-alt="category.name" loading="lazy"/>
+                                <span t-else="" class="dah_cat_fallback" t-esc="category.name[:1]"/>
+                            </span>
+                            <span class="dah_cat_tile_name" t-esc="category.name"/>
+                        </a>
+                    </t>
+                    <div class="dah_empty_hint" t-else="">Add categories from Dar Al Hadaya → Categories.</div>
+                    </div>
+                    <button class="dah_cat_arrow dah_cat_next" type="button" data-dah-cat-scroll="1" aria-label="Next categories">&#8250;</button>
+                </div>
+            </section>
+
+            <section class="dah_section dah_home_featured">
+                <div class="dah_section_head"><h2>Featured Gifts</h2><a href="/shop">View all <span aria-hidden="true">&#8594;</span></a></div>
+                <div class="dah_featured_grid">
+                    <a class="dah_featured_banner" t-att-href="dah_new_baby and '/shop/category/%s' % slug(dah_new_baby) or '/shop'"><img src="/dar_al_hadaya/static/src/img/banners/banner2.png" alt="Personalized Baby Gifts" width="1672" height="941" loading="lazy"/></a>
+                    <a class="dah_featured_banner" href="/shop"><img src="/dar_al_hadaya/static/src/img/banners/banner3.png" alt="Graduation Frame" width="1672" height="941" loading="lazy"/></a>
+                </div>
+            </section>
+
+            <section class="dah_section dah_process">
+                <div class="dah_section_head"><h2>How It Works</h2></div>
+                <div class="dah_steps">
+                    <div class="dah_step"><span class="dah_step_icon"><i class="fa fa-gift"/></span><span class="dah_step_num">1</span><h3>Choose your gift</h3></div>
+                    <span class="dah_step_arrow" aria-hidden="true">&#8594;</span>
+                    <div class="dah_step"><span class="dah_step_icon"><i class="fa fa-file-text-o"/></span><span class="dah_step_num">2</span><h3>Place your order</h3></div>
+                    <span class="dah_step_arrow" aria-hidden="true">&#8594;</span>
+                    <div class="dah_step"><span class="dah_step_icon"><i class="fa fa-whatsapp"/></span><span class="dah_step_num">3</span><h3>We complete order in WhatsApp</h3></div>
+                </div>
+            </section>
+        </div>
+    </xpath>
+</template>
+
+<template id="dar_al_hadaya.product_card" name="Dar Al Hadaya Product Card">
+    <div class="dah_product_card" t-att-data-product-id="product.product_variant_id.id">
+        <a class="dah_product_media" t-att-href="product.website_url"><img t-att-src="website.image_url(product, 'image_512')" t-att-alt="product.name" loading="lazy"/></a>
+        <button type="button" class="dah_wishlist_btn" data-dah-wishlist="" aria-label="Add to wishlist"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>
+        <div class="dah_product_info"><h3 t-esc="product.name"/><div class="dah_product_price" t-esc="product.currency_id.format(product.list_price)"/><a class="dah_btn dah_btn_order" t-att-href="product.website_url">Order Now</a></div>
+    </div>
+</template>
+</data>
+</odoo>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Idempotent: existing categories are reused and only missing ones are created. -->
+    <function model="product.public.category" name="_dah_ensure_navigation_categories"/>
+</odoo>

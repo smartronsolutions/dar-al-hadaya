@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     DAR AL HADAYA PRODUCT PAGE
+     Customizes the standard website_sale product page:
+       - product video (9:16 Reel) as the first media
+       - WhatsApp "Ask About This Product" button next to Order Now
+       - short introduction below the buttons
+       - expandable sections: Description / Details, contents & size /
+         Product information
+       - fixed Order Now bar + scroll-to-top while scrolling
+     ══════════════════════════════════════════════════════════════════ -->
+<template id="dar_al_hadaya_product" inherit_id="website_sale.product" name="Dar Al Hadaya Product Page">
+
+    <!-- Video first: vertical 9:16 viewer above the gallery -->
+    <xpath expr="//div[@id='product_detail_main']" position="before">
+        <div class="dah_product_video" t-if="product.dah_video_url">
+            <video t-att-src="product.dah_video_url" controls="controls" muted="muted" loop="loop" playsinline="playsinline" preload="metadata"></video>
+            <div class="dah_product_video_hint">Video</div>
+        </div>
+    </xpath>
+
+    <!-- WhatsApp "Ask About This Product" button, next to the CTA -->
+    <xpath expr="//div[hasclass('o_wsale_product_details_content_section_cta')]" position="inside">
+        <a class="dah_btn dah_btn_wa dah_wa_product_btn"
+           href="#"
+           t-att-data-dah-product-name="product.name"
+           t-att-data-dah-product-url="product.website_url"
+           target="_blank" rel="noopener">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2A10 10 0 0 0 2 12a9.9 9.9 0 0 0 1.5 5.2L2 22l4.9-1.4A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2s-1 .3-3.4-.7a11.7 11.7 0 0 1-4.8-4.3c-.4-.6-1.1-1.7-1.1-2.9a3.1 3.1 0 0 1 1-2.3 1 1 0 0 1 .8-.4h.6c.2 0 .4 0 .6.5l.9 2.1a.6.6 0 0 1 0 .6 6 6 0 0 1-.7 1c-.2.2-.3.4-.1.7a8.8 8.8 0 0 0 1.7 2.1 8 8 0 0 0 2.4 1.5c.3.1.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2.1 1c.3.2.5.3.6.4a2.6 2.6 0 0 1-.2 1Z"/></svg>
+            WhatsApp &#8211; Ask About This Product
+        </a>
+    </xpath>
+
+    <!-- Short introduction + expandable gifting sections, right after the CTA -->
+    <xpath expr="//div[hasclass('o_wsale_product_details_content_section_cta')]" position="after">
+        <div class="dah_product_intro" t-if="product.dah_short_description and not is_html_empty(product.dah_short_description)">
+            <t t-out="product.dah_short_description"/>
+        </div>
+
+        <div class="dah_product_expand">
+            <details t-if="product.description and not is_html_empty(product.description)">
+                <summary>Description</summary>
+                <div class="dah_expand_body"><t t-out="product.description"/></div>
+            </details>
+            <details t-if="product.dah_details_contents and not is_html_empty(product.dah_details_contents)">
+                <summary>Details, contents &amp; size</summary>
+                <div class="dah_expand_body"><t t-out="product.dah_details_contents"/></div>
+            </details>
+            <details t-if="product.dah_product_information and not is_html_empty(product.dah_product_information)">
+                <summary>Product information</summary>
+                <div class="dah_expand_body"><t t-out="product.dah_product_information"/></div>
+            </details>
+        </div>
+    </xpath>
+
+    <!-- Fixed Order Now bar shown while scrolling the product page -->
+    <xpath expr="//div[hasclass('js_sale', 'o_wsale_product_page')]" position="inside">
+        <div class="dah_fixed_order_bar" id="dah_fixed_order_bar">
+            <a class="dah_btn dah_btn_cta" href="#product_detail">Order Now</a>
+        </div>
+    </xpath>
+</template>
+
+</data>
+</odoo>

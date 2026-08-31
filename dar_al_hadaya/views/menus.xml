@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Dar Al Hadaya simplified backend: staff only see 6 main areas. -->
+    <menuitem id="dar_al_hadaya_menu_root"
+              name="Dar Al Hadaya"
+              sequence="1"
+              web_icon="dar_al_hadaya,static/description/icon.png">
+        <menuitem id="dar_al_hadaya_menu_orders"
+                  name="Orders"
+                  action="sale.action_orders"
+                  sequence="10"
+                  groups="sales_team.group_sale_salesman"/>
+        <menuitem id="dar_al_hadaya_menu_products"
+                  name="Products"
+                  action="product.product_template_action"
+                  sequence="20"
+                  groups="sales_team.group_sale_salesman"/>
+        <menuitem id="dar_al_hadaya_menu_customers"
+                  name="Customers"
+                  action="base.action_partner_form"
+                  sequence="30"
+                  groups="base.group_user"/>
+        <menuitem id="dar_al_hadaya_menu_categories"
+                  name="Categories"
+                  sequence="40">
+            <menuitem id="dar_al_hadaya_menu_categories_website"
+                      name="Website Categories"
+                      action="website_sale.product_public_category_action"
+                      sequence="10"/>
+            <menuitem id="dar_al_hadaya_menu_categories_pos"
+                      name="POS Categories"
+                      action="point_of_sale.product_pos_category_action"
+                      sequence="20"
+                      groups="point_of_sale.group_pos_user"/>
+        </menuitem>
+        <menuitem id="dar_al_hadaya_menu_website_content"
+                  name="Website Content"
+                  action="website.action_website_pages_list"
+                  sequence="50"
+                  groups="website.group_website_designer"/>
+        <menuitem id="dar_al_hadaya_menu_pos"
+                  name="Point of Sale"
+                  action="point_of_sale.action_pos_pos_form"
+                  sequence="60"
+                  groups="point_of_sale.group_pos_user"/>
+    </menuitem>
+
+</odoo>
