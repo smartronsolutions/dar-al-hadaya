@@ -97,6 +97,31 @@ class DarAlHadayaWebsite(http.Controller):
             })
         return {'results': results}
 
+    @http.route('/dah/product/review', type='http', auth='public', website=True, methods=['POST'], csrf=True)
+    def submit_product_review(self, product_id=None, rating=None, comment=None, **post):
+        """Allow both signed-in customers and website guests to leave a review."""
+        try:
+            product_id = int(product_id)
+            rating = min(5, max(1, int(rating)))
+        except (TypeError, ValueError):
+            return request.redirect('/shop')
+
+        product = request.env['product.template'].sudo().browse(product_id).exists()
+        comment = (comment or '').strip()[:2000]
+        if not product or not comment or not product.website_published:
+            return request.redirect(product.website_url if product else '/shop')
+
+        user = request.env.user
+        is_guest = user._is_public()
+        request.env['dah.product.review'].sudo().create({
+            'product_tmpl_id': product.id,
+            'partner_id': False if is_guest else user.partner_id.id,
+            'name': 'Guest' if is_guest else (user.partner_id.name or user.name),
+            'rating': rating,
+            'comment': comment,
+        })
+        return request.redirect('%s?reviewed=1#dah-panel-reviews' % product.website_url)
+
     @http.route('/dah/cart/data', type='jsonrpc', auth='public', website=True, methods=['POST'])
     def cart_data(self):
         order = request.cart
@@ -126,8 +151,11 @@ class DarAlHadayaWebsite(http.Controller):
             result['lines'].append({
                 'line_id': line.id,
                 'product_id': product.id,
+                'template_id': template.id,
                 'name': template.name,
                 'sku': product.default_code or template.default_code or '',
+                'customization': line.dah_customization or '',
+                'color_theme': line.dah_color_theme or '',
                 'description': html2plaintext(template.dah_short_description or '').strip(),
                 'image_src': request.website.image_url(product, 'image_256'),
                 'price': line.price_unit,
@@ -178,4 +206,24 @@ class DarAlHadayaWebsite(http.Controller):
     @http.route('/dah/whatsapp', type='jsonrpc', auth='public', website=True, methods=['POST'])
     def whatsapp_info(self):
         """Return the WhatsApp number used to complete orders."""
-        return {'number': '9743344765'}
+        return {'number': '97433344765'}
+
+    @http.route('/dah/cart/customization', type='jsonrpc', auth='public', website=True, methods=['POST'])
+    def cart_customization(self, product_id, customization='', color_theme=''):
+        """Persist the product-page customization text and color theme onto the cart line."""
+        order = request.cart
+        if not order:
+            return {'ok': False}
+        try:
+            product_id = int(product_id)
+        except (TypeError, ValueError):
+            return {'ok': False}
+        line = order.sudo().order_line.filtered(
+            lambda sol: sol.product_id.id == product_id
+        ).sorted(key=lambda sol: sol.id, reverse=True)[:1]
+        if line:
+            line.write({
+                'dah_customization': (customization or '').strip()[:2000],
+                'dah_color_theme': (color_theme or '').strip()[:200],
+            })
+        return {'ok': bool(line)}

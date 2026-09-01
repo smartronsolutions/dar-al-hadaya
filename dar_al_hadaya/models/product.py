@@ -332,3 +332,44 @@ class ProductTemplate(models.Model):
         help='Suggested add-ons shown in the order sidebar when this product is '
              'in the cart.',
     )
+
+    def _dah_legacy_rating_distribution(self):
+        """Return the per-star review breakdown for the product page.
+
+        Returns a list of dicts ordered from 5 stars down to 1::
+
+            [{'stars': 5, 'count': 40, 'percentage': 70}, ...]
+
+        Percentages are rounded integers; a product without reviews yields an
+        all-zero distribution. Public visitors get the data through ``sudo`` so
+        the website can render the review bars anonymously.
+        """
+        self.ensure_one()
+        counts = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
+        total = self.rating_count or 0
+        if total:
+            rating_model = self.env['rating.rating'].sudo()
+            groups = rating_model.read_group(
+                [
+                    ('res_model', '=', self._name),
+                    ('res_id', '=', self.id),
+                    ('consumed', '=', True),
+                    ('rating', '>=', 1),
+                ],
+                ['rating'],
+                ['rating'],
+            )
+            for group in groups:
+                value = group.get('rating')
+                if not value:
+                    continue
+                star = min(5, max(1, int(round(value))))
+                counts[star] += int(group.get('rating_count', 0))
+        return [
+            {
+                'stars': star,
+                'count': counts[star],
+                'percentage': round(counts[star] * 100.0 / total) if total else 0,
+            }
+            for star in (5, 4, 3, 2, 1)
+        ]

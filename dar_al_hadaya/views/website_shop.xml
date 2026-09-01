@@ -201,14 +201,16 @@
     <xpath expr="//div[hasclass('o_wsale_product_rating_wrapper')]" position="replace"/>
     <xpath expr="//div[hasclass('o_wsale_product_sub')]" position="replace">
         <div class="dah-shop-card-bottom">
-            <t t-if="product_price" t-out="product_price"/>
-            <t t-else="">
-                <t t-set="template_price_vals" t-value="get_product_prices(product)"/>
-                <div class="dah-shop-card-price" t-if="template_price_vals['price_reduce'] or not website.prevent_zero_price_sale">
-                    <span t-out="template_price_vals['price_reduce']"
-                        t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
-                </div>
-            </t>
+            <a class="dah-shop-product-price-link" t-att-href="product_href">
+                <t t-if="product_price" t-out="product_price"/>
+                <t t-else="">
+                    <t t-set="template_price_vals" t-value="get_product_prices(product)"/>
+                    <div class="dah-shop-card-price" t-if="template_price_vals['price_reduce'] or not website.prevent_zero_price_sale">
+                        <span t-out="template_price_vals['price_reduce']"
+                            t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                    </div>
+                </t>
+            </a>
             <a class="dah-shop-order-button" t-att-href="product_href">ORDER NOW</a>
         </div>
     </xpath>

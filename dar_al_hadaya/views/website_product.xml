@@ -4,64 +4,227 @@
 
 <!-- ══════════════════════════════════════════════════════════════════
      DAR AL HADAYA PRODUCT PAGE
-     Customizes the standard website_sale product page:
-       - product video (9:16 Reel) as the first media
-       - WhatsApp "Ask About This Product" button next to Order Now
-       - short introduction below the buttons
-       - expandable sections: Description / Details, contents & size /
-         Product information
-       - fixed Order Now bar + scroll-to-top while scrolling
+     Recreates the reference e-commerce product page with the
+     #132254 / #f6f5f2 palette:
+
+       1. Breadcrumb (kept from the standard website_sale.product)
+       2. Gallery: main image + left thumbnail rail (carousel + indicators)
+       3. Details: title, rating + SKU, price, short description, feature
+          badges, product-specific customization instructions + Color Theme,
+          quantity, ADD TO CART + BUY NOW, delivery info
+       4. Tabs: Description / Details / Shipping &amp; Returns / Reviews
+       5. "You May Also Like" alternative products (restyled in CSS)
+
+     The standard Odoo add-to-cart form is left intact so the existing
+     cart/order sidebar still works.
      ══════════════════════════════════════════════════════════════════ -->
-<template id="dar_al_hadaya_product" inherit_id="website_sale.product" name="Dar Al Hadaya Product Page">
 
-    <!-- Video first: vertical 9:16 viewer above the gallery -->
-    <xpath expr="//div[@id='product_detail_main']" position="before">
-        <div class="dah_product_video" t-if="product.dah_video_url">
-            <video t-att-src="product.dah_video_url" controls="controls" muted="muted" loop="loop" playsinline="playsinline" preload="metadata"></video>
-            <div class="dah_product_video_hint">Video</div>
+<!-- ── 1. Gallery: always use the carousel (reference shows thumbnails) ── -->
+<template id="dar_al_hadaya_product_images" inherit_id="website_sale.shop_product_images" name="Dar Al Hadaya Product Images">
+    <xpath expr="//t[@t-call='website_sale.shop_product_#{website.product_page_image_layout}']" position="replace">
+        <t t-call="website_sale.shop_product_carousel"/>
+    </xpath>
+</template>
+
+<!-- ── 2. Gallery: vertical thumbnail rail on the left of the main image ── -->
+<!-- ── 3. SKU straight under the product title ── -->
+<template id="dar_al_hadaya_product_title" inherit_id="website_sale.product_title" name="Dar Al Hadaya Product Title">
+    <xpath expr="//h1[@t-field='product.name']" position="after">
+        <div class="dah-product-sku" t-if="product.default_code or product_variant.default_code">
+            SKU: <span t-esc="product.default_code or product_variant.default_code"/>
         </div>
-    </xpath>
-
-    <!-- WhatsApp "Ask About This Product" button, next to the CTA -->
-    <xpath expr="//div[hasclass('o_wsale_product_details_content_section_cta')]" position="inside">
-        <a class="dah_btn dah_btn_wa dah_wa_product_btn"
-           href="https://wa.me/9743344765"
-           t-att-data-dah-product-name="product.name"
-           t-att-data-dah-product-url="product.website_url"
-           target="_blank" rel="noopener">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2A10 10 0 0 0 2 12a9.9 9.9 0 0 0 1.5 5.2L2 22l4.9-1.4A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2s-1 .3-3.4-.7a11.7 11.7 0 0 1-4.8-4.3c-.4-.6-1.1-1.7-1.1-2.9a3.1 3.1 0 0 1 1-2.3 1 1 0 0 1 .8-.4h.6c.2 0 .4 0 .6.5l.9 2.1a.6.6 0 0 1 0 .6 6 6 0 0 1-.7 1c-.2.2-.3.4-.1.7a8.8 8.8 0 0 0 1.7 2.1 8 8 0 0 0 2.4 1.5c.3.1.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2.1 1c.3.2.5.3.6.4a2.6 2.6 0 0 1-.2 1Z"/></svg>
-            WhatsApp &#8211; Ask About This Product
-        </a>
-    </xpath>
-
-    <!-- Short introduction + expandable gifting sections, right after the CTA -->
-    <xpath expr="//div[hasclass('o_wsale_product_details_content_section_cta')]" position="after">
-        <div class="dah_product_intro" t-if="product.dah_short_description and not is_html_empty(product.dah_short_description)">
+        <div class="dah-product-short-intro" t-if="product.dah_short_description and not is_html_empty(product.dah_short_description)">
             <t t-out="product.dah_short_description"/>
         </div>
+    </xpath>
+</template>
 
-        <div class="dah_product_expand">
-            <details t-if="product.description and not is_html_empty(product.description)">
-                <summary>Description</summary>
-                <div class="dah_expand_body"><t t-out="product.description"/></div>
-            </details>
-            <details t-if="product.dah_details_contents and not is_html_empty(product.dah_details_contents)">
-                <summary>Details, contents &amp; size</summary>
-                <div class="dah_expand_body"><t t-out="product.dah_details_contents"/></div>
-            </details>
-            <details t-if="product.dah_product_information and not is_html_empty(product.dah_product_information)">
-                <summary>Product information</summary>
-                <div class="dah_expand_body"><t t-out="product.dah_product_information"/></div>
-            </details>
+<!-- ── 4. Product details rework ── -->
+<template id="dar_al_hadaya_product" inherit_id="website_sale.product" name="Dar Al Hadaya Product Page">
+    <!-- Clean product breadcrumb and remove the public pricelist selector. -->
+    <xpath expr="//ol[hasclass('o_wsale_breadcrumb')]" position="replace"/>
+    <xpath expr="//t[@t-call='website_sale.pricelist_list']" position="replace"/>
+
+    <!-- Feature badges + Personalization options, just above the CTA -->
+    <xpath expr="//div[hasclass('o_wsale_product_details_content_section_cta')]" position="before">
+        <div class="dah-product-badges">
+            <div class="dah-product-badge"><i class="fa fa-truck" aria-hidden="true"></i><span>Personalized<small>with name</small></span></div>
+            <div class="dah-product-badge"><i class="fa fa-shield" aria-hidden="true"></i><span>Premium<small>Quality</small></span></div>
+            <div class="dah-product-badge"><i class="fa fa-gift" aria-hidden="true"></i><span>Beautiful<small>Gift Packaging</small></span></div>
+            <div class="dah-product-badge"><i class="fa fa-heart-o" aria-hidden="true"></i><span>Made with<small>Love</small></span></div>
+        </div>
+
+        <div class="dah-product-personalize">
+            <h4>Customize Your Product</h4>
+
+            <div class="dah-product-field">
+                <label for="dah_color_picker">Choose Color</label>
+                <div class="dah-color-picker-field">
+                    <input type="color" id="dah_color_picker" name="dah_color_theme" value="#132254" aria-label="Choose customization color"/>
+                    <span id="dah_color_value">#132254</span>
+                </div>
+                <small class="dah-product-field-hint">Tap the color box and select your preferred color.</small>
+            </div>
+
+            <div class="dah-product-field">
+                <label for="dah_customization">Describe Customization</label>
+                <textarea id="dah_customization" name="dah_customization" rows="3"
+                          placeholder="Describe exactly what you want, including text, name, date, style or any special instructions."
+                          autocomplete="off"></textarea>
+                <small class="dah-product-field-hint">Tell us how you want your product to be made.</small>
+            </div>
         </div>
     </xpath>
 
-    <!-- Fixed Order Now bar shown while scrolling the product page -->
-    <xpath expr="//div[hasclass('js_sale', 'o_wsale_product_page')]" position="inside">
-        <div class="dah_fixed_order_bar" id="dah_fixed_order_bar">
-            <a class="dah_btn dah_btn_cta" href="#product_detail">Order Now</a>
+    <!-- Delivery info row, right after the CTA -->
+    <xpath expr="//div[hasclass('o_wsale_product_details_content_section_cta')]" position="after">
+        <div class="dah-product-delivery">
+            <div class="dah-product-delivery-item">
+                <i class="fa fa-phone" aria-hidden="true"></i>
+                <span>Estimated Delivery: 2-3 working days</span>
+            </div>
+            <div class="dah-product-delivery-item">
+                <i class="fa fa-truck" aria-hidden="true"></i>
+                <span>Free delivery on orders above QAR 200</span>
+            </div>
+            <a class="dah-product-wa" href="https://wa.me/97433344765"
+               t-att-data-dah-product-name="product.name" target="_blank" rel="noopener">
+                <i class="fa fa-whatsapp" aria-hidden="true"></i> Chat on WhatsApp
+            </a>
         </div>
     </xpath>
+
+    <!-- The full description now lives in the Description tab, so hide it here -->
+    <xpath expr="//div[@id='product_full_description']" position="attributes">
+        <attribute name="class" add="d-none" separator=" "/>
+    </xpath>
+
+    <!-- Tabs: Description / Details / Shipping &amp; Returns / Reviews -->
+    <xpath expr="//section[@id='product_detail']" position="after">
+        <div class="dah_fixed_order_bar" id="dah_fixed_order_bar" aria-hidden="true">
+            <button type="button" class="dah_mobile_sticky_cart" id="dah_mobile_sticky_cart">
+                <i class="fa fa-shopping-cart" aria-hidden="true"></i>
+                <span>Add to Cart</span>
+            </button>
+            <button type="button" class="dah_mobile_sticky_whatsapp" id="dah_mobile_sticky_whatsapp">
+                <i class="fa fa-whatsapp" aria-hidden="true"></i>
+                <span>Order by WhatsApp</span>
+            </button>
+        </div>
+        <section class="dah-product-tabs container" id="dah_product_tabs" aria-label="Product information">
+            <t t-set="dah_review_stats" t-value="product.dah_review_stats()"/>
+            <ul class="nav nav-tabs dah-product-tabs-nav" id="dah_tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="dah-tab-description" data-bs-toggle="tab" data-bs-target="#dah-panel-description" type="button" role="tab" aria-controls="dah-panel-description" aria-selected="true">Description</button>
+                </li>
+                <li t-if="product.dah_details_contents and not is_html_empty(product.dah_details_contents)" class="nav-item" role="presentation">
+                    <button class="nav-link" id="dah-tab-details" data-bs-toggle="tab" data-bs-target="#dah-panel-details" type="button" role="tab" aria-controls="dah-panel-details" aria-selected="false">Details</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="dah-tab-shipping" data-bs-toggle="tab" data-bs-target="#dah-panel-shipping" type="button" role="tab" aria-controls="dah-panel-shipping" aria-selected="false">Shipping &amp; Returns</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="dah-tab-reviews" data-bs-toggle="tab" data-bs-target="#dah-panel-reviews" type="button" role="tab" aria-controls="dah-panel-reviews" aria-selected="false">Reviews <span t-if="dah_review_stats['count']">(<t t-esc="dah_review_stats['count']"/>)</span></button>
+                </li>
+            </ul>
+
+            <div class="tab-content dah-product-tabs-content" id="dah_tabs_content">
+                <div class="tab-pane fade show active" id="dah-panel-description" role="tabpanel" aria-labelledby="dah-tab-description">
+                    <div class="dah-product-description" t-if="product.website_description and not is_html_empty(product.website_description)">
+                        <t t-out="product.website_description"/>
+                    </div>
+                    <div class="dah-product-description" t-elif="product.description_ecommerce and not is_html_empty(product.description_ecommerce)">
+                        <t t-out="product.description_ecommerce"/>
+                    </div>
+                    <div class="dah-product-description" t-elif="product.dah_details_contents and not is_html_empty(product.dah_details_contents)">
+                        <t t-out="product.dah_details_contents"/>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="dah-panel-details" role="tabpanel" aria-labelledby="dah-tab-details">
+                    <div class="dah-product-description" t-out="product.dah_details_contents" t-if="product.dah_details_contents and not is_html_empty(product.dah_details_contents)"/>
+                </div>
+
+                <div class="tab-pane fade" id="dah-panel-shipping" role="tabpanel" aria-labelledby="dah-tab-shipping">
+                    <div class="dah-product-description">
+                        <p>Orders are carefully inspected, packaged and dispatched within 2-3 working days.</p>
+                        <p>Free delivery is available on all orders above QAR 200. For orders below this amount a delivery fee applies and is shown at checkout.</p>
+                        <p>If you are not completely satisfied with your order, we accept returns within 14 days of delivery, provided the item is unused and in its original packaging. Personalized items cannot be returned, except in case of damage or a production error.</p>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="dah-panel-reviews" role="tabpanel" aria-labelledby="dah-tab-reviews">
+                    <t t-set="dah_rating_rows" t-value="product.dah_rating_distribution()"/>
+                    <t t-set="dah_reviews" t-value="product.dah_public_reviews()"/>
+                    <div class="dah-product-reviews">
+                        <div class="dah-product-reviews-summary" t-if="dah_review_stats['count']">
+                            <div class="dah-product-reviews-score">
+                                <strong t-esc="'%0.1f' % dah_review_stats['average']">5.0</strong>
+                                <span class="dah-review-stars" aria-label="Average rating"><t t-esc="'★' * int(round(dah_review_stats['average']))"/><t t-esc="'☆' * (5 - int(round(dah_review_stats['average'])))"/></span>
+                            </div>
+                            <p class="dah-product-reviews-note" t-esc="'Based on %s reviews' % dah_review_stats['count']"/>
+                            <div class="dah-product-reviews-bars">
+                                <div class="dah-rating-row" t-foreach="dah_rating_rows" t-as="row">
+                                    <span class="dah-rating-star" t-esc="row['stars']"/>
+                                    <span class="dah-rating-bar">
+                                        <span class="dah-rating-fill" t-attf-style="width:{row['percentage']}%;"/>
+                                    </span>
+                                    <span class="dah-rating-pct" t-esc="str(row['percentage']) + '%'"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dah-product-reviews-empty" t-if="not dah_review_stats['count']">
+                            Be the first to review this product.
+                        </div>
+
+                        <form class="dah-review-form" action="/dah/product/review" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input type="hidden" name="product_id" t-att-value="product.id"/>
+                            <h4>Write a Review</h4>
+                            <div class="dah-review-success" t-if="request.httprequest.args.get('reviewed') == '1'">Thank you! Your review has been published.</div>
+                            <label for="dah_review_rating">Your rating</label>
+                            <select id="dah_review_rating" name="rating" required="required">
+                                <option value="5">★★★★★ - Excellent</option><option value="4">★★★★☆ - Very good</option><option value="3">★★★☆☆ - Good</option><option value="2">★★☆☆☆ - Fair</option><option value="1">★☆☆☆☆ - Poor</option>
+                            </select>
+                            <label for="dah_review_comment">Your review</label>
+                            <textarea id="dah_review_comment" name="comment" rows="4" maxlength="2000" required="required" placeholder="Share your experience with this product..."></textarea>
+                            <small t-if="request.env.user._is_public()">Your review will appear as Guest.</small>
+                            <small t-else="">Your review will appear as <strong t-esc="request.env.user.partner_id.name"/>.</small>
+                            <button type="submit">Submit Review</button>
+                        </form>
+
+                        <div class="dah-review-list" t-if="dah_reviews">
+                            <article class="dah-review-card" t-foreach="dah_reviews" t-as="review">
+                                <div class="dah-review-head"><strong t-esc="review.name"/><span class="dah-review-stars"><t t-esc="'★' * review.rating"/><t t-esc="'☆' * (5 - review.rating)"/></span></div>
+                                <p t-esc="review.comment"/>
+                                <time t-esc="review.create_date.strftime('%d %b %Y')"/>
+                            </article>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </xpath>
+
+</template>
+
+<!-- ── 4b. BUY NOW button (the add-to-cart anchor lives in cta_wrapper) ── -->
+<template id="dar_al_hadaya_product_cta_wrapper" inherit_id="website_sale.cta_wrapper" name="Dar Al Hadaya Buy Now Button">
+    <xpath expr="//a[@id='add_to_cart']" position="after">
+        <button type="button" class="dah-buy-now" id="dah_buy_now" aria-label="Buy now">Buy Now</button>
+        <button type="button" class="dah-order-whatsapp" id="dah_order_whatsapp" aria-label="Order this product by WhatsApp">
+            <i class="fa fa-whatsapp" aria-hidden="true"></i>
+            <span>Order by WhatsApp</span>
+        </button>
+    </xpath>
+</template>
+
+<!-- ── 5. "You May Also Like" title for the alternative products strip ── -->
+<template id="dar_al_hadaya_alternative_products" inherit_id="website_sale.alternative_products" name="Dar Al Hadaya You May Also Like">
+    <xpath expr="//section[hasclass('s_dynamic_snippet_title')]//h4" position="replace">
+        <h4>You May Also Like</h4>
+    </xpath>
+    <xpath expr="//section[hasclass('s_dynamic_snippet_title')]//p" position="replace"/>
 </template>
 
 </data>

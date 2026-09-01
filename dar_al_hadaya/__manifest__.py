@@ -1,6 +1,6 @@
 {
     'name': 'Dar Al Hadaya',
-    'version': '19.0.1.44.0',
+    'version': '19.0.1.70.0',
     'category': 'Website',
     'summary': 'Dar Al Hadaya - premium mobile-first gifting e-commerce website',
     'description': """
@@ -17,9 +17,8 @@ Premium, mobile-first gifting e-commerce website for Dar Al Hadaya.
   variations, quantity selector, ORDER NOW and WhatsApp buttons, expandable
   sections (Description / Details, contents & size / Product information)
   and a fixed Order Now bar while scrolling.
-* Cart / Order sidebar: adds "Add a Little Extra" recommended add-ons,
-  shows the full order, total, customer name and WhatsApp number and then
-  completes the order on WhatsApp.
+* Cart / Order sidebar: shows the full order and total, then continues through
+  Odoo's standard checkout flow.
 * Media rule: Instagram creatives are reused as-is - 4:5 portrait images and
   9:16 Reel videos are never cropped or forced into a different aspect ratio.
 * Simplified backend with 6 main areas: Orders, Products, Customers,
@@ -31,6 +30,7 @@ Premium, mobile-first gifting e-commerce website for Dar Al Hadaya.
         'website_sale',
         'website_sale_wishlist',
         'sale_management',
+        'account',
         'stock',
         'point_of_sale',
     ],

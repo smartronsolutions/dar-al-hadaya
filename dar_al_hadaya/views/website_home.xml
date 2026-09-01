@@ -81,8 +81,13 @@
 <template id="dar_al_hadaya.product_card" name="Dar Al Hadaya Product Card">
     <div class="dah_product_card" t-att-data-product-id="product.product_variant_id.id">
         <a class="dah_product_media" t-att-href="product.website_url"><img t-att-src="website.image_url(product, 'image_512')" t-att-alt="product.name" loading="lazy"/></a>
-        <button type="button" class="dah_wishlist_btn" data-dah-wishlist="" aria-label="Add to wishlist"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>
-        <div class="dah_product_info"><h3 t-esc="product.name"/><div class="dah_product_price" t-esc="product.currency_id.format(product.list_price)"/><a class="dah_btn dah_btn_order" t-att-href="product.website_url">ORDER NOW</a></div>
+        <div class="dah_product_info">
+            <a class="dah_product_text_link" t-att-href="product.website_url">
+                <h3 t-esc="product.name"/>
+                <div class="dah_product_price" t-esc="product.currency_id.format(product.list_price)"/>
+            </a>
+            <a class="dah_btn dah_btn_order" t-att-href="product.website_url">ORDER NOW</a>
+        </div>
     </div>
 </template>
 </data>

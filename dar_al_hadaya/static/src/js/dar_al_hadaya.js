@@ -33,8 +33,14 @@
         return data.currency_position === 'after' ? value + ' ' + sym : sym + ' ' + value;
     }
 
+    function escapeHtml(value) {
+        const node = document.createElement('div');
+        node.textContent = String(value || '');
+        return node.innerHTML;
+    }
+
     const DahWebsite = {
-        waNumber: '9743344765',
+        waNumber: '97433344765',
 
         /* ── helpers ──────────────────────────────────────────── */
         $: function (sel) { return document.querySelector(sel); },
@@ -44,6 +50,7 @@
             this.header();
             this.whatsapp();
             this.footer();
+            this.suppressStandardCartNotification();
             this.cart();
             this.heroSlider();
             this.categoryScroller();
@@ -53,6 +60,22 @@
             this.shopFilters();
         },
 
+        suppressStandardCartNotification: function () {
+            const removeCartToasts = root => {
+                if (!root || root.nodeType !== Node.ELEMENT_NODE) { return; }
+                const candidates = [root].concat(this.$$('.toast', root));
+                candidates.forEach(element => {
+                    if (element.matches('.toast') && element.querySelector('.o_cart_product_image')) {
+                        element.remove();
+                    }
+                });
+            };
+            new MutationObserver(mutations => {
+                mutations.forEach(mutation => {
+                    mutation.addedNodes.forEach(removeCartToasts);
+                });
+            }).observe(document.body, {childList: true, subtree: true});
+        },
         shopFilters: function () {
             this.$$('[data-dah-filter-url]').forEach(input => {
                 input.addEventListener('change', () => {
@@ -279,9 +302,9 @@
             if (continueBtn) { continueBtn.addEventListener('click', close); }
             if (overlay) { overlay.addEventListener('click', close); }
 
-            // Place Order -> WhatsApp
+            // Continue the cart through Odoo's standard checkout flow.
             const placeBtn = this.$('#dah_place_order');
-            if (placeBtn) { placeBtn.addEventListener('click', () => this.placeOrder()); }
+            if (placeBtn) { placeBtn.addEventListener('click', () => this.checkout()); }
 
             // delegate: qty buttons + addons + remove (re-render keeps old nodes)
             const itemsBox = this.$('#dah_cart_items');
@@ -312,11 +335,18 @@
                 });
             }
 
-            // Auto-open the sidebar after adding a product on the product page.
+            // Auto-open the sidebar after adding a product on the product page,
+            // and persist the customization text onto the order line.
             document.addEventListener('submit', e => {
                 const form = e.target;
                 if (!form || !form.classList.contains('js_main_product')) { return; }
+                const productId = parseInt(form.querySelector('input[name="product_id"]')?.value, 10);
+                const customization = this.readCustomization();
+                const colorTheme = this.readColorTheme();
                 setTimeout(() => {
+                    if (productId && (customization || colorTheme)) {
+                        this.saveCustomization(productId, customization, colorTheme);
+                    }
                     this.refreshCart().then(() => this.openCart()).catch(() => {});
                 }, 900);
             });
@@ -350,6 +380,8 @@
                         <div class="dah_cart_line_info">
                             <b>${line.name}</b>
                             <span>${line.attributes || ''}</span>
+                            ${line.customization ? `<span class="dah-cart-customization"><b>Customization:</b> ${escapeHtml(line.customization)}</span>` : ''}
+                            ${line.color_theme ? `<span class="dah-cart-customization"><b>Color Theme:</b> ${escapeHtml(line.color_theme)}</span>` : ''}
                             <div class="dah_qty" data-qty="${line.qty}">
                                 <button type="button" data-dah-qty="-1" data-dah-line="${line.line_id}" aria-label="Decrease">−</button>
                                 <span>${line.qty}</span>
@@ -395,6 +427,10 @@
                 .catch(err => { console.error(err); this.refreshCart(); });
         },
 
+        checkout: function () {
+            window.location.assign('/shop/checkout');
+        },
+
         placeOrder: function () {
             if (!this.waNumber) {
                 const msg = 'Dar Al Hadaya WhatsApp number is not configured yet. Set "dar_al_hadaya.whatsapp_number" in Settings → Technical → System Parameters.';
@@ -402,15 +438,14 @@
                 return;
             }
             dahRpc('/dah/cart/data', {}, true).then(data => {
-                const name = (this.$('#dah_customer_name') || {}).value || '';
-                const phone = (this.$('#dah_customer_phone') || {}).value || '';
-
                 const lines = (data.lines || []).map((line, index) => {
                     const productUrl = new URL(line.url || '/shop', window.location.origin).href;
                     const details = [
                         `*${index + 1}. ${line.name}*`,
                         line.sku ? `SKU: ${line.sku}` : '',
                         line.attributes ? `Options: ${line.attributes}` : '',
+                        line.customization ? `Customization: ${line.customization}` : '',
+                        line.color_theme ? `Color Theme: ${line.color_theme}` : '',
                         line.description ? `Details: ${line.description}` : '',
                         `Quantity: ${line.qty}`,
                         `Unit Price: ${money(line.price, data)}`,
@@ -423,9 +458,6 @@
                 if (data.order_reference) { msg += `Order Reference: ${data.order_reference}\n`; }
                 if (lines.length) { msg += '\n' + lines.join('\n\n') + '\n'; }
                 msg += '\n*Order Total: ' + money(data.amount_total, data) + '*';
-                if (name || phone) { msg += '\n\n*Customer Details*'; }
-                if (name) { msg += '\nName: ' + name; }
-                if (phone) { msg += '\nWhatsApp: ' + phone; }
                 msg += '\n\nPlease confirm availability and order details. Thank you!';
 
                 window.open('https://wa.me/' + this.waNumber + '?text=' + encodeURIComponent(msg), '_blank');
@@ -650,6 +682,10 @@
 
         /* ── product page helpers ──────────────────────────────── */
         productPage: function () {
+            // Confirm the product page before doing product-specific work.
+            const page = this.$('#product_detail');
+            if (!page) { return; }
+
             // WhatsApp "Ask about this product"
             this.$$('.dah_wa_product_btn').forEach(btn => {
                 btn.addEventListener('click', e => {
@@ -666,20 +702,165 @@
                 });
             });
 
-            // Fixed "Order Now" bar while scrolling the product page
+            // Mobile Add to Cart bar above the bottom navigation while scrolling.
             const bar = this.$('#dah_fixed_order_bar');
             if (bar) {
-                const detail = document.querySelector('#product_detail');
+                const originalCartButton = this.$('#add_to_cart');
+                const stickyCartButton = this.$('#dah_mobile_sticky_cart');
+                const stickyWhatsAppButton = this.$('#dah_mobile_sticky_whatsapp');
                 const onScroll = () => {
-                    if (!detail) { return; }
-                    const rect = detail.getBoundingClientRect();
-                    const past = rect.bottom < window.innerHeight;
-                    const nearTop = rect.top > -120;
-                    bar.classList.toggle('dah_visible', past && !nearTop);
+                    if (!originalCartButton) { return; }
+                    const isMobile = window.matchMedia('(max-width: 760px)').matches;
+                    const buttonTop = originalCartButton.getBoundingClientRect().top + window.scrollY;
+                    const triggerPoint = buttonTop + originalCartButton.offsetHeight;
+                    const show = isMobile && window.scrollY > triggerPoint;
+                    bar.classList.toggle('dah_visible', show);
+                    bar.setAttribute('aria-hidden', show ? 'false' : 'true');
+                    bar.style.opacity = show ? '1' : '0';
+                    bar.style.visibility = show ? 'visible' : 'hidden';
+                    bar.style.pointerEvents = show ? 'auto' : 'none';
+                    document.body.classList.toggle('dah_sticky_cart_visible', show);
                 };
+                if (stickyCartButton && originalCartButton) {
+                    stickyCartButton.addEventListener('click', event => {
+                        event.preventDefault();
+                        originalCartButton.click();
+                    });
+                }
+                if (stickyWhatsAppButton) {
+                    stickyWhatsAppButton.addEventListener('click', event => {
+                        event.preventDefault();
+                        const mainWhatsAppButton = this.$('#dah_order_whatsapp');
+                        if (mainWhatsAppButton) { mainWhatsAppButton.click(); }
+                    });
+                }
                 window.addEventListener('scroll', onScroll, {passive: true});
+                window.addEventListener('resize', onScroll, {passive: true});
+                window.setTimeout(onScroll, 250);
                 onScroll();
             }
+
+            // Order this product directly on WhatsApp with all selected details.
+            const orderWhatsApp = this.$('#dah_order_whatsapp');
+            if (orderWhatsApp) {
+                orderWhatsApp.addEventListener('click', event => {
+                    event.preventDefault();
+                    const form = orderWhatsApp.closest('form') || this.$('#product_details form');
+                    const productName = (this.$('#product_details h1')?.textContent || document.title || 'Product').trim();
+                    const sku = (this.$('.dah-product-sku span')?.textContent || '').trim();
+                    const quantity = (form?.querySelector('input[name="add_qty"]')?.value || '1').trim();
+                    const price = (this.$('.o_wsale_product_details_content_section_price')?.textContent || '').replace(/\s+/g, ' ').trim();
+                    const intro = (this.$('.dah-product-short-intro')?.textContent || '').replace(/\s+/g, ' ').trim();
+                    const customization = this.readCustomization();
+                    const colorTheme = this.readColorTheme();
+                    const options = [];
+
+                    if (form) {
+                        form.querySelectorAll('input.js_variant_change:checked').forEach(input => {
+                            const label = form.querySelector(`label[for="${input.id}"]`);
+                            const value = (label?.textContent || input.dataset.valueName || input.value || '').replace(/\s+/g, ' ').trim();
+                            if (value && !options.includes(value)) { options.push(value); }
+                        });
+                        form.querySelectorAll('select.js_variant_change').forEach(select => {
+                            const value = (select.options[select.selectedIndex]?.textContent || '').replace(/\s+/g, ' ').trim();
+                            if (value && !options.includes(value)) { options.push(value); }
+                        });
+                    }
+
+                    const messageLines = [
+                        'Hello Dar Al Hadaya!',
+                        '',
+                        '*Product Order Request*',
+                        `Product: ${productName}`,
+                        sku ? `SKU: ${sku}` : '',
+                        options.length ? `Selected Options: ${options.join(', ')}` : '',
+                        `Quantity: ${quantity}`,
+                        price ? `Price: ${price}` : '',
+                        colorTheme ? `Color: ${colorTheme}` : '',
+                        customization ? `Customization: ${customization}` : '',
+                        intro ? `Product Details: ${intro}` : '',
+                        `Product Link: ${window.location.href.split('#')[0]}`,
+                        '',
+                        'Please confirm availability and final order details.',
+                    ].filter(line => line !== '');
+
+                    window.open(
+                        'https://wa.me/' + this.waNumber + '?text=' + encodeURIComponent(messageLines.join('\n')),
+                        '_blank'
+                    );
+                });
+            }
+
+            // Buy Now -> reuse the standard Add to cart flow (opens the order sidebar)
+            const buyNow = this.$('#dah_buy_now');
+            if (buyNow) {
+                buyNow.addEventListener('click', e => {
+                    e.preventDefault();
+                    const addToCart = this.$('#add_to_cart');
+                    if (addToCart) { addToCart.click(); }
+                });
+            }
+
+            // Odoo 19 adds to cart through a click interaction rather than a form submit.
+            // Save the customer choices after that interaction has created/updated the line.
+            const addToCart = this.$('#add_to_cart');
+            if (addToCart) {
+                addToCart.addEventListener('click', () => {
+                    const form = addToCart.closest('form');
+                    const productId = parseInt(form?.querySelector('input[name="product_id"]')?.value, 10);
+                    const customization = this.readCustomization();
+                    const colorTheme = this.readColorTheme();
+                    window.setTimeout(() => {
+                        const save = productId && (customization || colorTheme)
+                            ? this.saveCustomization(productId, customization, colorTheme)
+                            : Promise.resolve();
+                        Promise.resolve(save).finally(() => {
+                            this.refreshCart().then(() => this.openCart && this.openCart()).catch(() => {});
+                        });
+                    }, 650);
+                });
+            }
+
+            // Color Theme: free-text field + color picker
+            const colorPicker = this.$('#dah_color_picker');
+            if (colorPicker) {
+                const colorValue = this.$('#dah_color_value');
+                colorPicker.addEventListener('input', () => {
+                    if (colorValue) { colorValue.textContent = colorPicker.value.toUpperCase(); }
+                });
+            }
+
+            // After submitting a public review, reopen the Reviews tab.
+            if (window.location.hash === '#dah-panel-reviews') {
+                const reviewsTab = this.$('#dah-tab-reviews');
+                if (reviewsTab) { window.setTimeout(() => reviewsTab.click(), 80); }
+            }
+        },
+
+        /* ── customization: description text + color theme ──────── */
+        readCustomization: function () {
+            const textarea = this.$('#dah_customization');
+            return textarea ? textarea.value.trim() : '';
+        },
+
+        readColorTheme: function () {
+            const picker = this.$('#dah_color_picker');
+            return picker ? picker.value.trim().toUpperCase() : '';
+        },
+
+        saveCustomization: function (productId, customization, colorTheme, attempt) {
+            attempt = attempt || 0;
+            return dahRpc('/dah/cart/customization', {
+                product_id: productId,
+                customization: customization,
+                color_theme: colorTheme,
+            }, true).then(result => {
+                if (!result.ok && attempt < 3) {
+                    return new Promise(resolve => window.setTimeout(resolve, 400))
+                        .then(() => this.saveCustomization(productId, customization, colorTheme, attempt + 1));
+                }
+                return result;
+            }).catch(() => ({ok: false}));
         },
     };
 

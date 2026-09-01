@@ -106,4 +106,73 @@
             </field>
         </field>
     </record>
+
+    <!-- Show the website customization text on the sale order line. -->
+    <record id="dar_al_hadaya_sale_order_form_customization" model="ir.ui.view">
+        <field name="name">dar.al.hadaya.sale.order.form.customization</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']/form//field[@name='name']" position="after">
+                <field name="dah_customization"
+                       string="Customization"
+                       placeholder="Customer customization..."
+                       invisible="display_type"/>
+                <field name="dah_color_theme"
+                       string="Color Theme"
+                       placeholder="Color theme..."
+                       invisible="display_type"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="dar_al_hadaya_sale_order_line_tree_customization" model="ir.ui.view">
+        <field name="name">dar.al.hadaya.sale.order.line.tree.customization</field>
+        <field name="model">sale.order.line</field>
+        <field name="inherit_id" ref="sale.view_order_line_tree"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="dah_customization" string="Customization" optional="show"/>
+                <field name="dah_color_theme" string="Color Theme" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="dar_al_hadaya_sale_order_line_form_customization" model="ir.ui.view">
+        <field name="name">dar.al.hadaya.sale.order.line.form.customization</field>
+        <field name="model">sale.order.line</field>
+        <field name="inherit_id" ref="sale.sale_order_line_view_form_readonly"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="dah_customization" string="Customization"/>
+                <field name="dah_color_theme" string="Color Theme"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="dar_al_hadaya_invoice_form_customization" model="ir.ui.view">
+        <field name="name">dar.al.hadaya.invoice.form.customization</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_line_ids']/list//field[@name='name']" position="after">
+                <field name="dah_customization" string="Customization" optional="show"/>
+                <field name="dah_color_theme" string="Color Theme" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <template id="dar_al_hadaya_invoice_report_customization" inherit_id="account.report_invoice_document">
+        <xpath expr="//td[@name='account_invoice_line_name']/span[@t-field='line.name']" position="after">
+            <div t-if="line.dah_customization" class="small"><strong>Customization:</strong> <span t-esc="line.dah_customization"/></div>
+            <div t-if="line.dah_color_theme" class="small"><strong>Color Theme:</strong> <span t-esc="line.dah_color_theme"/></div>
+        </xpath>
+    </template>
+
+    <template id="dar_al_hadaya_sale_report_customization" inherit_id="sale.report_saleorder_document">
+        <xpath expr="//td[@name='td_product_name']/span[@t-field='line.name']" position="after">
+            <div t-if="line.dah_customization" class="small"><strong>Customization:</strong> <span t-esc="line.dah_customization"/></div>
+            <div t-if="line.dah_color_theme" class="small"><strong>Color Theme:</strong> <span t-esc="line.dah_color_theme"/></div>
+        </xpath>
+    </template>
 </odoo>
