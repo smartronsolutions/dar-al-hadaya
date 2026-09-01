@@ -25,7 +25,7 @@
     <!-- WhatsApp "Ask About This Product" button, next to the CTA -->
     <xpath expr="//div[hasclass('o_wsale_product_details_content_section_cta')]" position="inside">
         <a class="dah_btn dah_btn_wa dah_wa_product_btn"
-           href="#"
+           href="https://wa.me/9743344765"
            t-att-data-dah-product-name="product.name"
            t-att-data-dah-product-url="product.website_url"
            target="_blank" rel="noopener">

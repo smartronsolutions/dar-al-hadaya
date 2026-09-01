@@ -64,14 +64,6 @@
                 </div>
             </section>
 
-            <section class="dah_section dah_home_featured">
-                <div class="dah_section_head"><h2>Featured Gifts</h2><a href="/shop">View all <span aria-hidden="true">&#8594;</span></a></div>
-                <div class="dah_featured_grid">
-                    <a class="dah_featured_banner" t-att-href="dah_new_baby and '/shop/category/%s' % slug(dah_new_baby) or '/shop'"><img src="/dar_al_hadaya/static/src/img/banners/banner2.png" alt="Personalized Baby Gifts" width="1672" height="941" loading="lazy"/></a>
-                    <a class="dah_featured_banner" href="/shop"><img src="/dar_al_hadaya/static/src/img/banners/banner3.png" alt="Graduation Frame" width="1672" height="941" loading="lazy"/></a>
-                </div>
-            </section>
-
             <section class="dah_section dah_process">
                 <div class="dah_section_head"><h2>How It Works</h2></div>
                 <div class="dah_steps">

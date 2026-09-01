@@ -34,7 +34,7 @@
     }
 
     const DahWebsite = {
-        waNumber: '',
+        waNumber: '9743344765',
 
         /* ── helpers ──────────────────────────────────────────── */
         $: function (sel) { return document.querySelector(sel); },
@@ -87,6 +87,19 @@
             });
             if (menuClose) { menuClose.addEventListener('click', () => setMenu(false)); }
             if (menuOverlay) { menuOverlay.addEventListener('click', () => setMenu(false)); }
+            const dockSearch = this.$('#dah_mobile_dock_search');
+            const dockSearchPanel = this.$('#dah_mobile_dock_search_panel');
+            if (dockSearch && dockSearchPanel) {
+                dockSearch.addEventListener('click', event => {
+                    event.stopPropagation();
+                    const open = !dockSearchPanel.classList.contains('dah-open');
+                    dockSearchPanel.classList.toggle('dah-open', open);
+                    window.setTimeout(() => {
+                        const input = this.$('#dah_dock_search_input');
+                        if (open && input) { input.focus(); }
+                    }, 80);
+                });
+            }
             headerEl.querySelectorAll('.dah-nav a').forEach(link => link.addEventListener('click', () => setMenu(false)));
             headerEl.querySelectorAll('.dah-mobile-submenu-toggle').forEach(toggle => {
                 toggle.addEventListener('click', () => {
@@ -136,9 +149,10 @@
                         link.href = plainText(product.website_url) || '/shop';
                         link.setAttribute('role', 'option');
                         const image = document.createElement('img');
-                        const imageDoc = new DOMParser().parseFromString(String(product.image_url || ''), 'text/html');
+                        const rawImageUrl = String(product.image_url || '');
+                        const imageDoc = new DOMParser().parseFromString(rawImageUrl, 'text/html');
                         const sourceImage = imageDoc.querySelector('img');
-                        image.src = sourceImage && sourceImage.getAttribute('src') || '/web/static/img/placeholder.png';
+                        image.src = (rawImageUrl.charAt(0) === '/' && rawImageUrl) || (sourceImage && sourceImage.getAttribute('src')) || '/web/static/img/placeholder.png';
                         image.alt = '';
                         const name = document.createElement('span');
                         name.className = 'dah-mobile-search-result-name';
@@ -157,10 +171,7 @@
                     if (term.length < 2) { hideSuggestions(); return; }
                     const requestId = ++searchRequest;
                     searchTimer = window.setTimeout(() => {
-                        dahRpc('/website/snippet/autocomplete', {
-                            search_type: 'products', term: term, order: 'name asc', limit: 6, max_nb_chars: 80,
-                            options: {displayImage: true, displayDescription: false, displayDetail: true, displayExtraLink: false, display_currency: true, allowFuzzy: true},
-                        }, false).then(data => {
+                        dahRpc('/dah/product/suggestions', {term: term, limit: 6}, false).then(data => {
                             if (requestId === searchRequest && searchInput.value.trim() === term) { renderSuggestions(data); }
                         }).catch(hideSuggestions);
                     }, 220);
@@ -171,29 +182,29 @@
             };
             setupProductSearch('#dah_mobile_search_input', '#dah_mobile_search_suggestions');
             setupProductSearch('#dah_desktop_search_input', '#dah_desktop_search_suggestions');
+            setupProductSearch('#dah_dock_search_input', '#dah_dock_search_suggestions');
             document.addEventListener('click', event => {
-                if (!event.target.closest('.dah-mobile-search, .dah-desktop-search')) {
+                if (!event.target.closest('.dah-mobile-search, .dah-desktop-search, .dah-mobile-dock-search-panel')) {
                     suggestionClosers.forEach(close => close());
+                    if (dockSearchPanel) { dockSearchPanel.classList.remove('dah-open'); }
                 }
             });
             document.addEventListener('keydown', e => {
-                if (e.key === 'Escape') { suggestionClosers.forEach(close => close()); setMenu(false); }
+                if (e.key === 'Escape') {
+                    suggestionClosers.forEach(close => close());
+                    if (dockSearchPanel) { dockSearchPanel.classList.remove('dah-open'); }
+                    setMenu(false);
+                }
             });
         },
 
         /* ── whatsapp links ───────────────────────────────────── */
         whatsapp: function () {
-            dahRpc('/dah/whatsapp', {}, true)
-                .then(res => {
-                    this.waNumber = res.number || '';
-                    const waLink = 'https://wa.me/' + this.waNumber;
-                    if (!this.waNumber) { return; }
-                    ['#dah_wa_link', '#dah_mobile_wa_link', '#dah_footer_wa_link', '#dah_footer_social_wa', '#dah_hero_wa'].forEach(sel => {
-                        const el = this.$(sel);
-                        if (el) { el.href = waLink; }
-                    });
-                })
-                .catch(() => {});
+            const waLink = 'https://wa.me/' + this.waNumber;
+            ['#dah_wa_link', '#dah_mobile_wa_link', '#dah_footer_wa_link', '#dah_footer_social_wa', '#dah_hero_wa'].forEach(sel => {
+                const el = this.$(sel);
+                if (el) { el.href = waLink; }
+            });
         },
 
         footer: function () {
@@ -254,6 +265,13 @@
                 cartBtn.addEventListener('click', event => {
                     event.preventDefault();
                     event.stopPropagation();
+                    open();
+                });
+            }
+            const dockCart = this.$('#dah_mobile_dock_cart');
+            if (dockCart) {
+                dockCart.addEventListener('click', event => {
+                    event.preventDefault();
                     open();
                 });
             }
@@ -387,15 +405,28 @@
                 const name = (this.$('#dah_customer_name') || {}).value || '';
                 const phone = (this.$('#dah_customer_phone') || {}).value || '';
 
-                const lines = (data.lines || []).map(line =>
-                    `${line.qty} × ${line.name}${line.attributes ? ' (' + line.attributes + ')' : ''} — ${money(line.price, data)}`
-                );
-                let msg = 'Hello Dar Al Hadaya! I would like to order:\n\n';
-                if (lines.length) { msg += lines.join('\n') + '\n'; }
-                msg += '\nTotal: ' + money(data.amount_total, data);
+                const lines = (data.lines || []).map((line, index) => {
+                    const productUrl = new URL(line.url || '/shop', window.location.origin).href;
+                    const details = [
+                        `*${index + 1}. ${line.name}*`,
+                        line.sku ? `SKU: ${line.sku}` : '',
+                        line.attributes ? `Options: ${line.attributes}` : '',
+                        line.description ? `Details: ${line.description}` : '',
+                        `Quantity: ${line.qty}`,
+                        `Unit Price: ${money(line.price, data)}`,
+                        `Line Total: ${money(line.subtotal, data)}`,
+                        `Product Link: ${productUrl}`,
+                    ];
+                    return details.filter(Boolean).join('\n');
+                });
+                let msg = 'Hello Dar Al Hadaya!\n\n*New Order Request*\n';
+                if (data.order_reference) { msg += `Order Reference: ${data.order_reference}\n`; }
+                if (lines.length) { msg += '\n' + lines.join('\n\n') + '\n'; }
+                msg += '\n*Order Total: ' + money(data.amount_total, data) + '*';
+                if (name || phone) { msg += '\n\n*Customer Details*'; }
                 if (name) { msg += '\nName: ' + name; }
                 if (phone) { msg += '\nWhatsApp: ' + phone; }
-                msg += '\n\nPlease confirm my order. Thank you!';
+                msg += '\n\nPlease confirm availability and order details. Thank you!';
 
                 window.open('https://wa.me/' + this.waNumber + '?text=' + encodeURIComponent(msg), '_blank');
             }).catch(() => {});

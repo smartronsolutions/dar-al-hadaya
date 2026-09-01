@@ -1,6 +1,7 @@
 from odoo import http
 from odoo.addons.website_sale.controllers.main import WebsiteSale
 from odoo.http import request
+from odoo.tools import html2plaintext
 
 
 class DarAlHadayaWebsiteSale(WebsiteSale):
@@ -63,6 +64,39 @@ class DarAlHadayaWebsite(http.Controller):
     recorded in the backend Orders area.
     """
 
+    @http.route('/dah/product/suggestions', type='jsonrpc', auth='public', website=True, readonly=True)
+    def product_suggestions(self, term='', limit=6):
+        """Return lightweight suggestions from products visible on this website."""
+        term = (term or '').strip()
+        if len(term) < 2:
+            return {'results': []}
+        try:
+            limit = min(max(int(limit), 1), 10)
+        except (TypeError, ValueError):
+            limit = 6
+        website = request.website
+        products = request.env['product.template'].sudo().search(
+            website.sale_product_domain() + [('name', 'ilike', term)],
+            order='website_sequence asc, name asc',
+            limit=limit,
+        )
+        currency = website.currency_id
+        results = []
+        for product in products:
+            amount = product.list_price
+            price = (
+                f'{amount:,.2f} {currency.symbol}'
+                if currency.position == 'after'
+                else f'{currency.symbol} {amount:,.2f}'
+            )
+            results.append({
+                'name': product.name,
+                'website_url': product.website_url,
+                'image_url': request.website.image_url(product, 'image_128'),
+                'detail': price,
+            })
+        return {'results': results}
+
     @http.route('/dah/cart/data', type='jsonrpc', auth='public', website=True, methods=['POST'])
     def cart_data(self):
         order = request.cart
@@ -70,6 +104,7 @@ class DarAlHadayaWebsite(http.Controller):
         result = {
             'count': 0,
             'amount_total': 0.0,
+            'order_reference': order.name if order else '',
             'currency_symbol': currency.symbol,
             'currency_position': currency.position,
             'currency_rounding': currency.rounding,
@@ -92,8 +127,11 @@ class DarAlHadayaWebsite(http.Controller):
                 'line_id': line.id,
                 'product_id': product.id,
                 'name': template.name,
+                'sku': product.default_code or template.default_code or '',
+                'description': html2plaintext(template.dah_short_description or '').strip(),
                 'image_src': request.website.image_url(product, 'image_256'),
                 'price': line.price_unit,
+                'subtotal': line.price_subtotal,
                 'qty': line.product_uom_qty,
                 'attributes': ', '.join(attributes.mapped('name')),
                 'url': template.website_url,
@@ -140,10 +178,4 @@ class DarAlHadayaWebsite(http.Controller):
     @http.route('/dah/whatsapp', type='jsonrpc', auth='public', website=True, methods=['POST'])
     def whatsapp_info(self):
         """Return the WhatsApp number used to complete orders."""
-        icp = request.env['ir.config_parameter'].sudo()
-        number = icp.get_param('dar_al_hadaya.whatsapp_number', '') or ''
-        number = number.replace(' ', '').replace('-', '').replace('+', '')
-        company = request.website.company_id
-        if not number:
-            number = (company.phone or '').replace(' ', '').replace('-', '').replace('+', '')
-        return {'number': number}
+        return {'number': '9743344765'}
