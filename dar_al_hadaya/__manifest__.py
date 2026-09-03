@@ -1,6 +1,6 @@
 {
     'name': 'Dar Al Hadaya',
-    'version': '19.0.1.92.0',
+    'version': '19.0.1.111.0',
     'category': 'Website',
     'summary': 'Dar Al Hadaya - premium mobile-first gifting e-commerce website',
     'description': """

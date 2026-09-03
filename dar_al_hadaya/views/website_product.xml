@@ -120,24 +120,6 @@
         </div>
     </xpath>
 
-    <!-- Delivery info row, right after the CTA -->
-    <xpath expr="//div[hasclass('o_wsale_product_details_content_section_cta')]" position="after">
-        <div class="dah-product-delivery">
-            <div class="dah-product-delivery-item">
-                <i class="fa fa-phone" aria-hidden="true"></i>
-                <span>Estimated Delivery: 2-3 working days</span>
-            </div>
-            <div class="dah-product-delivery-item">
-                <i class="fa fa-truck" aria-hidden="true"></i>
-                <span>Free delivery on orders above QAR 200</span>
-            </div>
-            <a class="dah-product-wa" href="https://wa.me/97433344765"
-               t-att-data-dah-product-name="product.name" target="_blank" rel="noopener">
-                <i class="fa fa-whatsapp" aria-hidden="true"></i> Chat on WhatsApp
-            </a>
-        </div>
-    </xpath>
-
     <!-- The full description now lives in the Description tab, so hide it here -->
     <xpath expr="//div[@id='product_full_description']" position="attributes">
         <attribute name="class" add="d-none" separator=" "/>
@@ -190,6 +172,20 @@
                 </div>
 
                 <div class="tab-pane fade" id="dah-panel-shipping" role="tabpanel" aria-labelledby="dah-tab-shipping">
+                    <div class="dah-product-delivery dah-product-delivery--tab">
+                        <div class="dah-product-delivery-item">
+                            <i class="fa fa-phone" aria-hidden="true"></i>
+                            <span>Estimated Delivery: 2-3 working days</span>
+                        </div>
+                        <div class="dah-product-delivery-item">
+                            <i class="fa fa-truck" aria-hidden="true"></i>
+                            <span>Free delivery on orders above QAR 200</span>
+                        </div>
+                        <a class="dah-product-wa" href="https://wa.me/97433344765"
+                           t-att-data-dah-product-name="product.name" target="_blank" rel="noopener">
+                            <i class="fa fa-whatsapp" aria-hidden="true"></i> Chat on WhatsApp
+                        </a>
+                    </div>
                     <div class="dah-product-description">
                         <p>Orders are carefully inspected, packaged and dispatched within 2-3 working days.</p>
                         <p>Free delivery is available on all orders above QAR 200. For orders below this amount a delivery fee applies and is shown at checkout.</p>

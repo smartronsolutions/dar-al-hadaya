@@ -82,6 +82,13 @@ class SaleOrderLine(models.Model):
         return values
 
 
+class SaleOrder(models.Model):
+    _inherit = 'sale.order'
+
+    dah_customer_name = fields.Char(string='Website Customer Name', copy=False)
+    dah_whatsapp_number = fields.Char(string='WhatsApp Number', copy=False)
+
+
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 

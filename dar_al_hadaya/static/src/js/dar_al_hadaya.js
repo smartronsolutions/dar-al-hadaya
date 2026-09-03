@@ -224,7 +224,7 @@
         /* ── whatsapp links ───────────────────────────────────── */
         whatsapp: function () {
             const waLink = 'https://wa.me/' + this.waNumber;
-            ['#dah_wa_link', '#dah_mobile_wa_link', '#dah_footer_wa_link', '#dah_footer_social_wa', '#dah_hero_wa'].forEach(sel => {
+            ['#dah_wa_link', '#dah_mobile_wa_link', '#dah_footer_wa_link', '#dah_footer_social_wa', '#dah_footer_mobile_social_wa', '#dah_hero_wa'].forEach(sel => {
                 const el = this.$(sel);
                 if (el) { el.href = waLink; }
             });
@@ -298,13 +298,22 @@
                     open();
                 });
             }
+            const mobileMenuCart = this.$('#dah_mobile_menu_cart');
+            if (mobileMenuCart) {
+                mobileMenuCart.addEventListener('click', event => {
+                    event.preventDefault();
+                    const menuClose = this.$('#dah_menu_close');
+                    if (menuClose) { menuClose.click(); }
+                    open();
+                });
+            }
             if (closeBtn) { closeBtn.addEventListener('click', close); }
             if (continueBtn) { continueBtn.addEventListener('click', close); }
             if (overlay) { overlay.addEventListener('click', close); }
 
-            // Continue the cart through Odoo's standard checkout flow.
+            // Create the Odoo sale order, then continue the conversation on WhatsApp.
             const placeBtn = this.$('#dah_place_order');
-            if (placeBtn) { placeBtn.addEventListener('click', () => this.checkout()); }
+            if (placeBtn) { placeBtn.addEventListener('click', () => this.placeOrder()); }
 
             // delegate: qty buttons + addons + remove (re-render keeps old nodes)
             const itemsBox = this.$('#dah_cart_items');
@@ -427,41 +436,50 @@
                 .catch(err => { console.error(err); this.refreshCart(); });
         },
 
-        checkout: function () {
-            window.location.assign('/shop/checkout');
-        },
-
         placeOrder: function () {
             if (!this.waNumber) {
                 const msg = 'Dar Al Hadaya WhatsApp number is not configured yet. Set "dar_al_hadaya.whatsapp_number" in Settings → Technical → System Parameters.';
                 if (typeof window.alert === 'function') { window.alert(msg); }
                 return;
             }
-            dahRpc('/dah/cart/data', {}, true).then(data => {
-                const lines = (data.lines || []).map((line, index) => {
-                    const productUrl = new URL(line.url || '/shop', window.location.origin).href;
-                    const details = [
-                        `*${index + 1}. ${line.name}*`,
-                        line.sku ? `SKU: ${line.sku}` : '',
-                        line.attributes ? `Options: ${line.attributes}` : '',
-                        line.customization ? `Customization: ${line.customization}` : '',
-                        line.color_theme ? `Color Theme: ${line.color_theme}` : '',
-                        line.description ? `Details: ${line.description}` : '',
-                        `Quantity: ${line.qty}`,
-                        `Unit Price: ${money(line.price, data)}`,
-                        `Line Total: ${money(line.subtotal, data)}`,
-                        `Product Link: ${productUrl}`,
-                    ];
-                    return details.filter(Boolean).join('\n');
-                });
-                let msg = 'Hello Dar Al Hadaya!\n\n*New Order Request*\n';
-                if (data.order_reference) { msg += `Order Reference: ${data.order_reference}\n`; }
-                if (lines.length) { msg += '\n' + lines.join('\n\n') + '\n'; }
-                msg += '\n*Order Total: ' + money(data.amount_total, data) + '*';
-                msg += '\n\nPlease confirm availability and order details. Thank you!';
+            const nameInput = this.$('#dah_order_customer_name');
+            const phoneInput = this.$('#dah_order_whatsapp_number');
+            const errorBox = this.$('#dah_cart_order_error');
+            const placeBtn = this.$('#dah_place_order');
+            const fullName = (nameInput?.value || '').trim();
+            const whatsappNumber = (phoneInput?.value || '').trim();
+            const phoneDigits = whatsappNumber.replace(/\D/g, '');
 
-                window.open('https://wa.me/' + this.waNumber + '?text=' + encodeURIComponent(msg), '_blank');
-            }).catch(() => {});
+            [nameInput, phoneInput].forEach(input => input?.classList.remove('dah-invalid'));
+            if (errorBox) { errorBox.textContent = ''; }
+            if (fullName.length < 2) {
+                nameInput?.classList.add('dah-invalid');
+                nameInput?.focus();
+                if (errorBox) { errorBox.textContent = 'Please enter your full name.'; }
+                return;
+            }
+            if (phoneDigits.length < 7 || phoneDigits.length > 15) {
+                phoneInput?.classList.add('dah-invalid');
+                phoneInput?.focus();
+                if (errorBox) { errorBox.textContent = 'Please enter a valid WhatsApp number with country code.'; }
+                return;
+            }
+
+            if (placeBtn) { placeBtn.disabled = true; placeBtn.textContent = 'Creating Order...'; }
+            dahRpc('/dah/cart/place-whatsapp', {
+                full_name: fullName,
+                whatsapp_number: whatsappNumber,
+            }, true).then(data => {
+                if (!data || !data.ok) {
+                    throw new Error(data && data.error || 'Unable to create your order.');
+                }
+                window.location.assign(
+                    'https://wa.me/' + data.number + '?text=' + encodeURIComponent(data.message)
+                );
+            }).catch(error => {
+                if (errorBox) { errorBox.textContent = error.message || 'Unable to create your order. Please try again.'; }
+                if (placeBtn) { placeBtn.disabled = false; placeBtn.textContent = 'Place Order'; }
+            });
         },
 
         /* ── hero slider ───────────────────────────────────────── */

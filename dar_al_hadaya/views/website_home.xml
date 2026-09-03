@@ -24,11 +24,11 @@
                     </article>
                     <button type="button" class="dah_hero_arrow dah_hero_prev" id="dah_hero_prev" aria-label="Previous banner">&#8249;</button>
                     <button type="button" class="dah_hero_arrow dah_hero_next" id="dah_hero_next" aria-label="Next banner">&#8250;</button>
-                </div>
-                <div class="dah_hero_dots" id="dah_hero_dots" aria-label="Choose banner">
-                    <button type="button" class="dah_hero_dot dah_hero_dot_active" data-index="0" aria-label="Banner 1"/>
-                    <button type="button" class="dah_hero_dot" data-index="1" aria-label="Banner 2"/>
-                    <button type="button" class="dah_hero_dot" data-index="2" aria-label="Banner 3"/>
+                    <div class="dah_hero_dots" id="dah_hero_dots" aria-label="Choose banner">
+                        <button type="button" class="dah_hero_dot dah_hero_dot_active" data-index="0" aria-label="Banner 1"/>
+                        <button type="button" class="dah_hero_dot" data-index="1" aria-label="Banner 2"/>
+                        <button type="button" class="dah_hero_dot" data-index="2" aria-label="Banner 3"/>
+                    </div>
                 </div>
             </section>
 

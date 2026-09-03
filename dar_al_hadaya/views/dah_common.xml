@@ -25,6 +25,11 @@
      ══════════════════════════════════════════════════════════════════ -->
 <template id="dar_al_hadaya_common_layout" inherit_id="website.layout" name="Dar Al Hadaya Common Layout">
 
+    <!-- Keep the responsive mobile storefront at its designed scale. -->
+    <xpath expr="//meta[@name='viewport']" position="attributes">
+        <attribute name="content">width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no</attribute>
+    </xpath>
+
     <!-- Hide the native Odoo header -->
     <xpath expr="//header" position="attributes">
         <attribute name="style">display:none !important</attribute>
@@ -110,36 +115,28 @@
                     <t t-set="dah_wedding" t-value="dah_public_categories.filtered(lambda category: category.name == 'Wedding &amp; Marriage Gifts')[:1]"/>
                     <t t-set="dah_navigation_products" t-value="request.env['product.template'].sudo().search(website.sale_product_domain())"/>
                     <t t-set="dah_navigation_occasions" t-value="dah_navigation_products.mapped('dah_occasion_ids').filtered('active').sorted(key=lambda occasion: (occasion.sequence, (occasion.name or '').lower(), occasion.id))"/>
+                    <t t-set="dah_mobile_categories" t-value="request.env['product.public.category'].sudo().search([('dah_for_dar_al_hadaya', '=', True), ('website_id', 'in', [False, website.id])], order='sequence, name, id')"/>
                     <div class="dah-mobile-only">
-                        <form class="dah-mobile-search" action="/shop" method="get" role="search" autocomplete="off">
-                            <label class="dah-mobile-search-field" for="dah_mobile_search_input">
-                                <svg class="dah-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.2 16.2 4 4"/></svg>
-                                <input id="dah_mobile_search_input" type="search" name="search" placeholder="Search gifts..." aria-label="Search gifts" aria-controls="dah_mobile_search_suggestions" aria-autocomplete="list"/>
-                            </label>
-                            <button type="submit">SEARCH</button>
-                            <div class="dah-mobile-search-suggestions" id="dah_mobile_search_suggestions" role="listbox" aria-live="polite"></div>
-                        </form>
                         <div class="dah-mobile-nav-list">
                             <a class="dah-mobile-nav-row" href="/"><i class="fa fa-home"/><span>HOME</span></a>
-                            <a class="dah-mobile-nav-row" href="/shop"><i class="fa fa-gift"/><span>GIFTS</span></a>
-                            <div class="dah-mobile-nav-group" t-if="dah_navigation_occasions">
-                                <button class="dah-mobile-nav-row dah-mobile-submenu-toggle" type="button" aria-expanded="false"><i class="fa fa-calendar"/><span>OCCASIONS</span><i class="fa fa-angle-right dah-mobile-row-arrow"/></button>
-                                <div class="dah-mobile-submenu"><a t-foreach="dah_navigation_occasions" t-as="occasion" t-att-href="'/shop?occasion=%s' % occasion.id" t-out="occasion.name"/></div>
+                            <div class="dah-mobile-nav-group">
+                                <button class="dah-mobile-nav-row dah-mobile-submenu-toggle" type="button" aria-expanded="false"><i class="fa fa-th-large"/><span>CATEGORY</span><i class="fa fa-angle-right dah-mobile-row-arrow"/></button>
+                                <div class="dah-mobile-submenu">
+                                    <a href="/shop">All Products</a>
+                                    <a t-foreach="dah_mobile_categories" t-as="category" t-att-href="'/shop/category/%s' % slug(category)" t-out="category.name"/>
+                                </div>
                             </div>
-                            <a class="dah-mobile-nav-row" t-att-href="dah_custom_gifts and '/shop/category/%s' % slug(dah_custom_gifts) or '/shop'"><i class="fa fa-magic"/><span>CUSTOM GIFTS</span></a>
-                            <a class="dah-mobile-nav-row" t-att-href="dah_islamic_gifts and '/shop/category/%s' % slug(dah_islamic_gifts) or '/shop'"><i class="fa fa-building-o"/><span>ISLAMIC GIFTS</span></a>
-                            <a class="dah-mobile-nav-row" t-att-href="dah_new_baby and '/shop/category/%s' % slug(dah_new_baby) or '/shop'"><i class="fa fa-child"/><span>NEW BABY</span></a>
-                            <a class="dah-mobile-nav-row" href="/contactus"><i class="fa fa-envelope-o"/><span>CONTACT US</span></a>
+                            <div class="dah-mobile-nav-group">
+                                <button class="dah-mobile-nav-row dah-mobile-submenu-toggle" type="button" aria-expanded="false"><i class="fa fa-share-alt"/><span>SOCIAL MEDIA</span><i class="fa fa-angle-right dah-mobile-row-arrow"/></button>
+                                <div class="dah-mobile-submenu dah-mobile-social-submenu">
+                                    <a id="dah_mobile_wa_link" href="https://wa.me/97433344765" target="_blank" rel="noopener"><i class="fa fa-whatsapp"/><span>WhatsApp</span></a>
+                                    <a href="https://www.instagram.com/daralhadaya" target="_blank" rel="noopener"><i class="fa fa-instagram"/><span>Instagram</span></a>
+                                    <a href="https://www.tiktok.com/@daralhadaya" target="_blank" rel="noopener"><svg class="dah-tiktok-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.2 3c.35 2.15 1.55 3.43 3.8 3.56v3.06a8.28 8.28 0 0 1-3.76-1.1v6.13a6.18 6.18 0 1 1-5.34-6.12v3.14a3.08 3.08 0 1 0 2.22 2.96V3h3.08Z"/></svg><span>TikTok</span></a>
+                                    <a href="https://www.facebook.com/share/1Bmkr4Q92N/?mibextid=wwXIfr" target="_blank" rel="noopener"><i class="fa fa-facebook"/><span>Facebook</span></a>
+                                </div>
+                            </div>
+                            <button class="dah-mobile-nav-row" id="dah_mobile_menu_cart" type="button"><i class="fa fa-shopping-cart"/><span>CART</span></button>
                         </div>
-                        <a
-                            class="dah-mobile-account"
-                            t-att-href="'/web/login?redirect=/my/home' if request.env.user._is_public() else '/my/home'"
-                        >
-                            <i class="fa fa-user-o" aria-hidden="true"/>
-                            <span t-out="'Sign In' if request.env.user._is_public() else 'My Account'"/>
-                            <i class="fa fa-angle-right" aria-hidden="true"/>
-                        </a>
-                        <a class="dah-mobile-whatsapp" id="dah_mobile_wa_link" href="https://wa.me/97433344765" target="_blank" rel="noopener"><i class="fa fa-whatsapp"/><span>Need help? <b>Chat on WhatsApp</b></span><i class="fa fa-angle-right"/></a>
                     </div>
                     <div class="dah-desktop-nav-links">
                         <a href="/">HOME</a><a href="/shop">GIFTS</a>
@@ -223,11 +220,13 @@
                         <p>Thoughtful gifts for every occasion. Personalized with love, delivered with care.</p>
                         <div class="dah_footer_socials">
                             <a href="https://wa.me/97433344765" id="dah_footer_social_wa" aria-label="WhatsApp" target="_blank" rel="noopener"><i class="fa fa-whatsapp"/></a>
-                            <a t-if="website.social_instagram" t-att-href="website.social_instagram" aria-label="Instagram" target="_blank" rel="noopener"><i class="fa fa-instagram"/></a>
-                            <a t-if="website.social_facebook" t-att-href="website.social_facebook" aria-label="Facebook" target="_blank" rel="noopener"><i class="fa fa-facebook"/></a>
-                            <a t-if="website.social_tiktok" t-att-href="website.social_tiktok" aria-label="TikTok" target="_blank" rel="noopener"><i class="fa fa-tiktok"/></a>
-                            <a t-if="website.social_youtube" t-att-href="website.social_youtube" aria-label="YouTube" target="_blank" rel="noopener"><i class="fa fa-youtube-play"/></a>
-                            <a t-if="website.social_linkedin" t-att-href="website.social_linkedin" aria-label="LinkedIn" target="_blank" rel="noopener"><i class="fa fa-linkedin"/></a>
+                            <a href="https://www.instagram.com/daralhadaya" aria-label="Instagram" target="_blank" rel="noopener"><i class="fa fa-instagram"/></a>
+                            <a href="https://www.tiktok.com/@daralhadaya" aria-label="TikTok" target="_blank" rel="noopener">
+                                <svg class="dah-tiktok-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M15.2 3c.35 2.15 1.55 3.43 3.8 3.56v3.06a8.28 8.28 0 0 1-3.76-1.1v6.13a6.18 6.18 0 1 1-5.34-6.12v3.14a3.08 3.08 0 1 0 2.22 2.96V3h3.08Z"/>
+                                </svg>
+                            </a>
+                            <a href="https://www.facebook.com/share/1Bmkr4Q92N/?mibextid=wwXIfr" aria-label="Facebook" target="_blank" rel="noopener"><i class="fa fa-facebook"/></a>
                         </div>
                     </section>
 
@@ -242,21 +241,12 @@
                     </section>
 
                     <section class="dah_footer_group">
-                        <h3>CUSTOMER SERVICE</h3><button class="dah_footer_toggle" type="button" aria-expanded="false">CUSTOMER SERVICE</button>
-                        <div class="dah_footer_content"><ul>
-                            <li><a href="/contactus">About &amp; Contact Us</a></li>
-                            <li><a href="/my/orders">My Orders &amp; Tracking</a></li>
-                            <li><a href="/terms">Returns, Refunds &amp; Terms</a></li>
-                            <li><a href="/contactus">Help &amp; Support</a></li>
-                        </ul></div>
-                    </section>
-
-                    <section class="dah_footer_group">
                         <h3>INFO</h3><button class="dah_footer_toggle" type="button" aria-expanded="false">INFO</button>
                         <div class="dah_footer_content"><ul>
                             <li><a href="/terms">Terms &amp; Conditions</a></li>
-                            <li><a href="/contactus">Shipping Information</a></li>
-                            <li><a href="/contactus">Privacy Questions</a></li>
+                            <li><a href="/privacy">Privacy Policy</a></li>
+                            <li><a href="/refund-policy">Refund Policy</a></li>
+                            <li><a href="/blog">Blog</a></li>
                         </ul></div>
                     </section>
 
@@ -277,13 +267,26 @@
                     </section>
                 </div>
 
+                <nav class="dah_footer_mobile_socials" aria-label="Social media links">
+                    <a href="https://wa.me/97433344765" id="dah_footer_mobile_social_wa" aria-label="WhatsApp" target="_blank" rel="noopener"><i class="fa fa-whatsapp"/></a>
+                    <a href="https://www.instagram.com/daralhadaya" aria-label="Instagram" target="_blank" rel="noopener"><i class="fa fa-instagram"/></a>
+                    <a href="https://www.facebook.com/share/1Bmkr4Q92N/?mibextid=wwXIfr" aria-label="Facebook" target="_blank" rel="noopener"><i class="fa fa-facebook"/></a>
+                    <a href="https://www.tiktok.com/@daralhadaya" aria-label="TikTok" target="_blank" rel="noopener"><svg class="dah-tiktok-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.2 3c.35 2.15 1.55 3.43 3.8 3.56v3.06a8.28 8.28 0 0 1-3.76-1.1v6.13a6.18 6.18 0 1 1-5.34-6.12v3.14a3.08 3.08 0 1 0 2.22 2.96V3h3.08Z"/></svg></a>
+                </nav>
+
                 <div class="dah_footer_bottom">
+                    <nav class="dah_footer_legal" aria-label="Footer legal links">
+                        <a href="/terms">Terms &amp; Conditions</a>
+                        <a href="/privacy">Privacy Policy</a>
+                        <a href="/refund-policy">Refund Policy</a>
+                        <a href="/blog">Blog</a>
+                    </nav>
                     <span>&#169; <span id="dah_footer_year">2026</span> DAR AL HADAYA. All rights reserved.</span>
                     <div class="dah_footer_payments" aria-label="Accepted payment methods">
                         <img src="/dar_al_hadaya/static/src/img/payments/visa.svg" alt="Visa" loading="lazy"/>
                         <img src="/dar_al_hadaya/static/src/img/payments/mastercard.svg" alt="Mastercard" loading="lazy"/>
-                        <img src="/dar_al_hadaya/static/src/img/payments/apple-pay.svg" alt="Apple Pay" loading="lazy"/>
                         <img src="/dar_al_hadaya/static/src/img/payments/google-pay.svg" alt="Google Pay" loading="lazy"/>
+                        <img src="/dar_al_hadaya/static/src/img/payments/apple-pay.svg" alt="Apple Pay" loading="lazy"/>
                     </div>
                 </div>
             </footer>
@@ -326,6 +329,13 @@
             </div>
 
             <div class="dah_cart_foot">
+                <div class="dah_cart_customer_fields">
+                    <label for="dah_order_customer_name">Enter Your Full Name</label>
+                    <input id="dah_order_customer_name" type="text" maxlength="120" autocomplete="name" placeholder="Enter your full name" required="required"/>
+                    <label for="dah_order_whatsapp_number">WhatsApp Number</label>
+                    <input id="dah_order_whatsapp_number" type="tel" maxlength="24" autocomplete="tel" inputmode="tel" placeholder="e.g. +974 3333 4465" required="required"/>
+                    <div class="dah_cart_order_error" id="dah_cart_order_error" role="alert" aria-live="polite"></div>
+                </div>
                 <div class="dah_cart_total">
                     <span>Total</span>
                     <strong id="dah_cart_total">&#8211;</strong>

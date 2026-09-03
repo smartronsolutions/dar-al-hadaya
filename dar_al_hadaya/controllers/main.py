@@ -268,6 +268,93 @@ class DarAlHadayaWebsite(http.Controller):
         """Return the WhatsApp number used to complete orders."""
         return {'number': '97433344765'}
 
+    @http.route('/dah/cart/place-whatsapp', type='jsonrpc', auth='public', website=True, methods=['POST'])
+    def place_cart_order_whatsapp(self, full_name='', whatsapp_number=''):
+        """Confirm the website cart without checkout and return its WhatsApp message."""
+        full_name = ' '.join((full_name or '').strip().split())[:120]
+        raw_phone = (whatsapp_number or '').strip()[:24]
+        phone_digits = re.sub(r'\D', '', raw_phone)
+        if len(full_name) < 2:
+            return {'ok': False, 'error': 'Please enter your full name.'}
+        if not 7 <= len(phone_digits) <= 15:
+            return {'ok': False, 'error': 'Please enter a valid WhatsApp number with country code.'}
+
+        order = request.cart
+        if not order or not order.order_line.filtered(lambda line: not line.display_type):
+            return {'ok': False, 'error': 'Your cart is empty.'}
+        order = order.sudo()
+        if order.state != 'draft':
+            return {'ok': False, 'error': 'This order has already been placed.'}
+
+        Partner = request.env['res.partner'].sudo()
+        partner = Partner.search([
+            ('name', '=ilike', full_name),
+            ('phone', '=', raw_phone),
+        ], limit=1)
+        if not partner:
+            partner = Partner.create({
+                'name': full_name,
+                'phone': raw_phone,
+                'customer_rank': 1,
+            })
+
+        order.write({
+            'partner_id': partner.id,
+            'partner_invoice_id': partner.id,
+            'partner_shipping_id': partner.id,
+            'dah_customer_name': full_name,
+            'dah_whatsapp_number': raw_phone,
+        })
+        order.action_confirm()
+
+        currency = order.currency_id
+        def format_money(amount):
+            value = f'{amount:,.2f}'
+            return f'{value} {currency.symbol}' if currency.position == 'after' else f'{currency.symbol} {value}'
+
+        message_lines = [
+            f'Hello Dar Al Hadaya, I am {full_name}.',
+            'I am interested in these products:',
+            '',
+            f'Order Reference: {order.name}',
+            f'My WhatsApp Number: {raw_phone}',
+            '',
+        ]
+        base_url = request.httprequest.url_root.rstrip('/')
+        product_lines = order.order_line.filtered(lambda line: not line.display_type)
+        for index, line in enumerate(product_lines, start=1):
+            product = line.product_id
+            template = product.product_tmpl_id
+            attributes = line.product_no_variant_attribute_value_ids | product.product_template_attribute_value_ids
+            product_url = template.website_url or '/shop'
+            if not product_url.startswith(('http://', 'https://')):
+                product_url = f'{base_url}{product_url}'
+            message_lines.extend([
+                f'*{index}. {template.name}*',
+                f'SKU: {product.default_code or template.default_code}' if (product.default_code or template.default_code) else '',
+                f'Options: {", ".join(attributes.mapped("name"))}' if attributes else '',
+                f'Customization: {line.dah_customization}' if line.dah_customization else '',
+                f'Color Theme: {line.dah_color_theme}' if line.dah_color_theme else '',
+                f'Quantity: {line.product_uom_qty:g}',
+                f'Unit Price: {format_money(line.price_unit)}',
+                f'Line Total: {format_money(line.price_subtotal)}',
+                f'Product Link: {product_url}',
+                '',
+            ])
+        message_lines.extend([
+            f'*Order Total: {format_money(order.amount_total)}*',
+            '',
+            'Please confirm availability and complete my order on WhatsApp. Thank you!',
+        ])
+        message = '\n'.join(message_lines).strip()
+        request.website.sale_reset()
+        return {
+            'ok': True,
+            'number': '97433344765',
+            'order_reference': order.name,
+            'message': message,
+        }
+
     @http.route('/dah/cart/customization', type='jsonrpc', auth='public', website=True, methods=['POST'])
     def cart_customization(self, product_id, customization='', color_theme=''):
         """Persist the product-page customization text and color theme onto the cart line."""
