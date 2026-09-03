@@ -1,5 +1,7 @@
 import base64
+import re
 from pathlib import Path
+from urllib.parse import parse_qs, quote, urlparse
 
 from odoo import _, api, fields, models
 from odoo.fields import Domain
@@ -291,10 +293,83 @@ class ProductTemplate(models.Model):
 
     dah_video_url = fields.Char(
         string='Product Video URL',
-        help='Direct URL of the product video (Instagram Reel, 9:16 / 1080x1920). '
-             'Displayed as the first media on the product page, in its original '
-             'vertical proportions.',
+        help='YouTube, Instagram Reel/Post or Facebook video URL. The video is '
+             'displayed as the first media on the product page.',
     )
+    dah_video_type = fields.Selection(
+        selection=[('link', 'Link'), ('upload', 'Upload')],
+        string='Video Type',
+        default='link',
+        required=True,
+    )
+    dah_video_file = fields.Binary(
+        string='Upload Video',
+        attachment=True,
+        help='Upload an MP4/WebM video owned by your business.',
+    )
+    dah_video_filename = fields.Char(string='Video Filename')
+
+    def _dah_video_data(self):
+        """Describe the first gallery video selected by the product manager."""
+        self.ensure_one()
+        if self.dah_video_type == 'upload' and self.dah_video_file:
+            return {
+                'type': 'upload',
+                'url': f'/dah/product/video/{self.id}',
+            }
+        if self.dah_video_type != 'upload':
+            embed_url = self._dah_video_embed_url()
+            if embed_url:
+                return {'type': 'embed', 'url': embed_url}
+        return False
+
+    def _dah_video_embed_url(self):
+        """Return a safe embed URL for supported public video providers."""
+        self.ensure_one()
+        raw_url = (self.dah_video_url or '').strip()
+        if not raw_url:
+            return False
+        parsed = urlparse(raw_url if '://' in raw_url else f'https://{raw_url}')
+        host = (parsed.hostname or '').lower().removeprefix('www.')
+        video_id = ''
+        if host == 'youtu.be':
+            video_id = parsed.path.strip('/').split('/')[0]
+        elif host in {'youtube.com', 'm.youtube.com', 'youtube-nocookie.com'}:
+            if parsed.path == '/watch':
+                video_id = parse_qs(parsed.query).get('v', [''])[0]
+            else:
+                parts = [part for part in parsed.path.split('/') if part]
+                if len(parts) >= 2 and parts[0] in {'embed', 'shorts', 'live'}:
+                    video_id = parts[1]
+        if re.fullmatch(r'[A-Za-z0-9_-]{6,20}', video_id or ''):
+            return (
+                f'https://www.youtube-nocookie.com/embed/{video_id}'
+                '?autoplay=1&mute=1&playsinline=1&rel=0'
+            )
+
+        if host in {'instagram.com', 'm.instagram.com'}:
+            parts = [part for part in parsed.path.split('/') if part]
+            if len(parts) >= 2 and parts[0] in {'reel', 'reels', 'p', 'tv'}:
+                media_type = 'reel' if parts[0] == 'reels' else parts[0]
+                media_code = parts[1]
+                if re.fullmatch(r'[A-Za-z0-9_-]{5,40}', media_code):
+                    return f'https://www.instagram.com/{media_type}/{media_code}/embed/'
+
+        facebook_hosts = {
+            'facebook.com', 'm.facebook.com', 'web.facebook.com',
+            'fb.watch', 'fb.com',
+        }
+        if host in facebook_hosts and parsed.path.strip('/'):
+            safe_url = quote(raw_url, safe='')
+            return (
+                'https://www.facebook.com/plugins/video.php'
+                f'?href={safe_url}&show_text=false&autoplay=true&mute=true'
+            )
+        return False
+
+    def _dah_youtube_embed_url(self):
+        """Compatibility alias retained for previously compiled templates."""
+        return self._dah_video_embed_url()
     dah_short_description = fields.Html(
         string='Short Introduction',
         help='One or two sentences shown right below the order buttons.',

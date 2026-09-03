@@ -791,16 +791,6 @@
                 });
             }
 
-            // Buy Now -> reuse the standard Add to cart flow (opens the order sidebar)
-            const buyNow = this.$('#dah_buy_now');
-            if (buyNow) {
-                buyNow.addEventListener('click', e => {
-                    e.preventDefault();
-                    const addToCart = this.$('#add_to_cart');
-                    if (addToCart) { addToCart.click(); }
-                });
-            }
-
             // Odoo 19 adds to cart through a click interaction rather than a form submit.
             // Save the customer choices after that interaction has created/updated the line.
             const addToCart = this.$('#add_to_cart');

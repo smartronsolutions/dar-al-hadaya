@@ -211,7 +211,10 @@
                     </div>
                 </t>
             </a>
-            <a class="dah-shop-order-button" t-att-href="product_href">ORDER NOW</a>
+            <a class="dah-shop-order-button" t-att-href="product_href">
+                <i class="fa fa-shopping-bag" aria-hidden="true"/>
+                <span>ORDER NOW</span>
+            </a>
         </div>
     </xpath>
 </template>

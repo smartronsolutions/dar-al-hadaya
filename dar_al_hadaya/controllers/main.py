@@ -1,3 +1,7 @@
+import base64
+import mimetypes
+import re
+
 from odoo import http
 from odoo.addons.website_sale.controllers.main import WebsiteSale
 from odoo.http import request
@@ -6,6 +10,62 @@ from odoo.tools import html2plaintext
 
 class DarAlHadayaWebsiteSale(WebsiteSale):
     """Add simple, client-manageable Occasion and Personalization filters."""
+
+    @http.route(
+        '/dah/product/video/<int:product_id>',
+        type='http', auth='public', website=True, methods=['GET'], csrf=False,
+    )
+    def dah_product_video(self, product_id, **kwargs):
+        """Stream an uploaded product video with browser range support."""
+        product = request.env['product.template'].sudo().browse(product_id).exists()
+        if (
+            not product
+            or product.dah_video_type != 'upload'
+            or not product.dah_video_file
+            or (request.env.user._is_public() and not product.is_published)
+        ):
+            return request.not_found()
+
+        try:
+            content = base64.b64decode(product.dah_video_file)
+        except (TypeError, ValueError):
+            return request.not_found()
+        total = len(content)
+        if not total:
+            return request.not_found()
+
+        mimetype = mimetypes.guess_type(product.dah_video_filename or '')[0] or 'video/mp4'
+        if mimetype not in {'video/mp4', 'video/webm', 'video/ogg'}:
+            mimetype = 'application/octet-stream'
+        headers = [
+            ('Content-Type', mimetype),
+            ('X-Content-Type-Options', 'nosniff'),
+            ('Accept-Ranges', 'bytes'),
+            ('Cache-Control', 'public, max-age=86400'),
+        ]
+        status = 200
+        range_header = request.httprequest.headers.get('Range', '')
+        match = re.fullmatch(r'bytes=(\d*)-(\d*)', range_header)
+        if match:
+            start_text, end_text = match.groups()
+            if start_text:
+                start = int(start_text)
+                end = int(end_text) if end_text else total - 1
+            elif end_text:
+                length = min(int(end_text), total)
+                start, end = total - length, total - 1
+            else:
+                start, end = 0, total - 1
+            if start >= total or start > end:
+                return request.make_response(
+                    b'', headers=[('Content-Range', f'bytes */{total}')], status=416,
+                )
+            end = min(end, total - 1)
+            content = content[start:end + 1]
+            status = 206
+            headers.append(('Content-Range', f'bytes {start}-{end}/{total}'))
+        headers.append(('Content-Length', str(len(content))))
+        return request.make_response(content, headers=headers, status=status)
 
     def _get_search_options(self, **kwargs):
         options = super()._get_search_options(**kwargs)

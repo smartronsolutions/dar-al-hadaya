@@ -86,7 +86,10 @@
                 <h3 t-esc="product.name"/>
                 <div class="dah_product_price" t-esc="product.currency_id.format(product.list_price)"/>
             </a>
-            <a class="dah_btn dah_btn_order" t-att-href="product.website_url">ORDER NOW</a>
+            <a class="dah_btn dah_btn_order" t-att-href="product.website_url">
+                <i class="fa fa-shopping-bag" aria-hidden="true"/>
+                <span>ORDER NOW</span>
+            </a>
         </div>
     </div>
 </template>
