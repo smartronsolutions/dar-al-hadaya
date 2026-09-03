@@ -10,7 +10,7 @@
        1. Breadcrumb (kept from the standard website_sale.product)
        2. Gallery: main image + left thumbnail rail (carousel + indicators)
        3. Details: title, rating + SKU, price, short description,
-          product-specific customization instructions + Color Theme,
+          product-specific customization instructions,
           quantity, ADD TO CART, delivery info
        4. Tabs: Description / Details / Shipping &amp; Returns / Reviews
        5. "You May Also Like" alternative products (restyled in CSS)
@@ -99,17 +99,6 @@
     <!-- Personalization options, just above the CTA -->
     <xpath expr="//div[hasclass('o_wsale_product_details_content_section_cta')]" position="before">
         <div class="dah-product-personalize">
-            <h4>Customize Your Product</h4>
-
-            <div class="dah-product-field">
-                <label for="dah_color_picker">Choose Color</label>
-                <div class="dah-color-picker-field">
-                    <input type="color" id="dah_color_picker" name="dah_color_theme" value="#132254" aria-label="Choose customization color"/>
-                    <span id="dah_color_value">#132254</span>
-                </div>
-                <small class="dah-product-field-hint">Tap the color box and select your preferred color.</small>
-            </div>
-
             <div class="dah-product-field">
                 <label for="dah_customization">Describe Customization</label>
                 <textarea id="dah_customization" name="dah_customization" rows="3"

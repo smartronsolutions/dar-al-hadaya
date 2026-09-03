@@ -215,7 +215,6 @@ class DarAlHadayaWebsite(http.Controller):
                 'name': template.name,
                 'sku': product.default_code or template.default_code or '',
                 'customization': line.dah_customization or '',
-                'color_theme': line.dah_color_theme or '',
                 'description': html2plaintext(template.dah_short_description or '').strip(),
                 'image_src': request.website.image_url(product, 'image_256'),
                 'price': line.price_unit,
@@ -334,7 +333,6 @@ class DarAlHadayaWebsite(http.Controller):
                 f'SKU: {product.default_code or template.default_code}' if (product.default_code or template.default_code) else '',
                 f'Options: {", ".join(attributes.mapped("name"))}' if attributes else '',
                 f'Customization: {line.dah_customization}' if line.dah_customization else '',
-                f'Color Theme: {line.dah_color_theme}' if line.dah_color_theme else '',
                 f'Quantity: {line.product_uom_qty:g}',
                 f'Unit Price: {format_money(line.price_unit)}',
                 f'Line Total: {format_money(line.price_subtotal)}',
@@ -356,8 +354,8 @@ class DarAlHadayaWebsite(http.Controller):
         }
 
     @http.route('/dah/cart/customization', type='jsonrpc', auth='public', website=True, methods=['POST'])
-    def cart_customization(self, product_id, customization='', color_theme=''):
-        """Persist the product-page customization text and color theme onto the cart line."""
+    def cart_customization(self, product_id, customization=''):
+        """Persist the product-page customization text onto the cart line."""
         order = request.cart
         if not order:
             return {'ok': False}
@@ -371,6 +369,5 @@ class DarAlHadayaWebsite(http.Controller):
         if line:
             line.write({
                 'dah_customization': (customization or '').strip()[:2000],
-                'dah_color_theme': (color_theme or '').strip()[:200],
             })
         return {'ok': bool(line)}

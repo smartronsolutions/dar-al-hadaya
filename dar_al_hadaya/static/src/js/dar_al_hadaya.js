@@ -315,11 +315,15 @@
             const placeBtn = this.$('#dah_place_order');
             if (placeBtn) { placeBtn.addEventListener('click', () => this.placeOrder()); }
 
-            // delegate: qty buttons + addons + remove (re-render keeps old nodes)
+            // Delegate quantity and remove controls (re-render keeps old nodes).
             const itemsBox = this.$('#dah_cart_items');
-            const addonsBox = this.$('#dah_cart_addons');
             if (itemsBox) {
                 itemsBox.addEventListener('click', e => {
+                    const remove = e.target.closest('[data-dah-remove]');
+                    if (remove) {
+                        this.updateLine(parseInt(remove.dataset.dahRemove, 10), 0);
+                        return;
+                    }
                     const btn = e.target.closest('[data-dah-qty]');
                     if (!btn) { return; }
                     const lineId = parseInt(btn.dataset.dahLine, 10);
@@ -334,16 +338,6 @@
                     }
                 });
             }
-            if (addonsBox) {
-                addonsBox.addEventListener('click', e => {
-                    const btn = e.target.closest('[data-dah-addon]');
-                    if (!btn) { return; }
-                    const productId = parseInt(btn.dataset.dahAddon, 10);
-                    const templateId = parseInt(btn.dataset.dahTemplate, 10);
-                    this.addProduct(productId, templateId);
-                });
-            }
-
             // Auto-open the sidebar after adding a product on the product page,
             // and persist the customization text onto the order line.
             document.addEventListener('submit', e => {
@@ -351,10 +345,9 @@
                 if (!form || !form.classList.contains('js_main_product')) { return; }
                 const productId = parseInt(form.querySelector('input[name="product_id"]')?.value, 10);
                 const customization = this.readCustomization();
-                const colorTheme = this.readColorTheme();
                 setTimeout(() => {
-                    if (productId && (customization || colorTheme)) {
-                        this.saveCustomization(productId, customization, colorTheme);
+                    if (productId && customization) {
+                        this.saveCustomization(productId, customization);
                     }
                     this.refreshCart().then(() => this.openCart()).catch(() => {});
                 }, 900);
@@ -374,46 +367,25 @@
             if (badge) { badge.textContent = data.count; }
 
             const itemsBox = this.$('#dah_cart_items');
-            const addonsBox = this.$('#dah_cart_addons');
             const totalEl = this.$('#dah_cart_total');
 
             if (!itemsBox) { return; }
             if (!data.lines || !data.lines.length) {
                 itemsBox.innerHTML = '<div class="dah_cart_empty">Your order is empty.</div>';
-                const extras = this.$('#dah_cart_extras');
-                if (extras) { extras.style.display = 'none'; }
             } else {
                 itemsBox.innerHTML = data.lines.map(line => `
                     <div class="dah_cart_line">
                         <a href="${line.url}"><img src="${line.image_src}" alt=""/></a>
                         <div class="dah_cart_line_info">
-                            <b>${line.name}</b>
-                            <span>${line.attributes || ''}</span>
-                            ${line.customization ? `<span class="dah-cart-customization"><b>Customization:</b> ${escapeHtml(line.customization)}</span>` : ''}
-                            ${line.color_theme ? `<span class="dah-cart-customization"><b>Color Theme:</b> ${escapeHtml(line.color_theme)}</span>` : ''}
+                            <button type="button" class="dah_cart_line_remove" data-dah-remove="${line.line_id}" aria-label="Remove ${escapeHtml(line.name)} from cart">&times;</button>
+                            <b>${escapeHtml(line.name)}</b>
+                            <span class="dah_cart_line_price">${money(line.price, data)}</span>
                             <div class="dah_qty" data-qty="${line.qty}">
                                 <button type="button" data-dah-qty="-1" data-dah-line="${line.line_id}" aria-label="Decrease">−</button>
                                 <span>${line.qty}</span>
                                 <button type="button" data-dah-qty="1" data-dah-line="${line.line_id}" aria-label="Increase">+</button>
                             </div>
                         </div>
-                        <div class="dah_cart_line_meta">
-                            <span class="dah_cart_line_price">${money(line.price, data)}</span>
-                        </div>
-                    </div>`).join('');
-                const extras = this.$('#dah_cart_extras');
-                if (extras) { extras.style.display = data.addons && data.addons.length ? '' : 'none'; }
-            }
-
-            if (addonsBox) {
-                addonsBox.innerHTML = (data.addons || []).map(addon => `
-                    <div class="dah_addon">
-                        <img src="${addon.image_src}" alt=""/>
-                        <div class="dah_addon_info">
-                            <b>${addon.name}</b>
-                            <span>${money(addon.price, data)}</span>
-                        </div>
-                        <button type="button" class="dah_addon_btn" data-dah-addon="${addon.product_id}" data-dah-template="${addon.template_id}" aria-label="Add ${addon.name}">+</button>
                     </div>`).join('');
             }
 
@@ -770,7 +742,6 @@
                     const price = (this.$('.o_wsale_product_details_content_section_price')?.textContent || '').replace(/\s+/g, ' ').trim();
                     const intro = (this.$('.dah-product-short-intro')?.textContent || '').replace(/\s+/g, ' ').trim();
                     const customization = this.readCustomization();
-                    const colorTheme = this.readColorTheme();
                     const options = [];
 
                     if (form) {
@@ -794,7 +765,6 @@
                         options.length ? `Selected Options: ${options.join(', ')}` : '',
                         `Quantity: ${quantity}`,
                         price ? `Price: ${price}` : '',
-                        colorTheme ? `Color: ${colorTheme}` : '',
                         customization ? `Customization: ${customization}` : '',
                         intro ? `Product Details: ${intro}` : '',
                         `Product Link: ${window.location.href.split('#')[0]}`,
@@ -817,24 +787,14 @@
                     const form = addToCart.closest('form');
                     const productId = parseInt(form?.querySelector('input[name="product_id"]')?.value, 10);
                     const customization = this.readCustomization();
-                    const colorTheme = this.readColorTheme();
                     window.setTimeout(() => {
-                        const save = productId && (customization || colorTheme)
-                            ? this.saveCustomization(productId, customization, colorTheme)
+                        const save = productId && customization
+                            ? this.saveCustomization(productId, customization)
                             : Promise.resolve();
                         Promise.resolve(save).finally(() => {
                             this.refreshCart().then(() => this.openCart && this.openCart()).catch(() => {});
                         });
                     }, 650);
-                });
-            }
-
-            // Color Theme: free-text field + color picker
-            const colorPicker = this.$('#dah_color_picker');
-            if (colorPicker) {
-                const colorValue = this.$('#dah_color_value');
-                colorPicker.addEventListener('input', () => {
-                    if (colorValue) { colorValue.textContent = colorPicker.value.toUpperCase(); }
                 });
             }
 
@@ -845,27 +805,21 @@
             }
         },
 
-        /* ── customization: description text + color theme ──────── */
+        /* ── customization description text ───────────────────── */
         readCustomization: function () {
             const textarea = this.$('#dah_customization');
             return textarea ? textarea.value.trim() : '';
         },
 
-        readColorTheme: function () {
-            const picker = this.$('#dah_color_picker');
-            return picker ? picker.value.trim().toUpperCase() : '';
-        },
-
-        saveCustomization: function (productId, customization, colorTheme, attempt) {
+        saveCustomization: function (productId, customization, attempt) {
             attempt = attempt || 0;
             return dahRpc('/dah/cart/customization', {
                 product_id: productId,
                 customization: customization,
-                color_theme: colorTheme,
             }, true).then(result => {
                 if (!result.ok && attempt < 3) {
                     return new Promise(resolve => window.setTimeout(resolve, 400))
-                        .then(() => this.saveCustomization(productId, customization, colorTheme, attempt + 1));
+                        .then(() => this.saveCustomization(productId, customization, attempt + 1));
                 }
                 return result;
             }).catch(() => ({ok: false}));

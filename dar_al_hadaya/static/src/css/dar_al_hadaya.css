@@ -17,8 +17,8 @@
     --dah-green-gold: #d4b787;
     --dah-wa: #25D366;
     --dah-wa-dark: #1DAF55;
-    --dah-serif: 'Poppins', Arial, Helvetica, sans-serif;
-    --dah-sans: 'Poppins', Arial, Helvetica, sans-serif;
+    --dah-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --dah-sans: 'Fraunces', Georgia, 'Times New Roman', serif;
 }
 
 html { scroll-behavior: smooth; }
@@ -50,7 +50,7 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
 #wrapwrap textarea,
 #wrapwrap select,
 #wrapwrap label {
-    font-family: 'Poppins', Arial, Helvetica, sans-serif !important;
+    font-family: 'Fraunces', Georgia, 'Times New Roman', serif !important;
 }
 #wrapwrap .fa,
 #wrapwrap [class^="fa-"],
@@ -427,19 +427,19 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
 .dah_wishlist_btn.dah_wished { color: #E0457B; }
 .dah_wishlist_btn:hover { color: #E0457B; }
 .dah_product_info { padding: 22px 16px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; flex: 1; text-align: center; border-top: 1px solid rgba(19, 34, 84, .04); }
-.dah_product_text_link { display: flex; width: 100%; flex-direction: column; align-items: center; gap: 9px; color: #132254; text-decoration: none; }
-.dah_product_info h3 { font-size: calc(1.05rem - .5pt); font-weight: 700; margin: 0; line-height: 1.35; color: #132254; }
-.dah_product_price { font-size: calc(1.06rem - .5pt); font-weight: 400; color: #132254; }
+.dah_product_text_link { display: flex; width: 100%; flex-direction: column; align-items: center; gap: 9px; color: #000; text-decoration: none; }
+.dah_product_info h3 { font-size: calc(1.05rem - .5pt); font-weight: 700; margin: 0; line-height: 1.35; color: #000; }
+.dah_product_price { font-size: calc(1.06rem - .5pt); font-weight: 400; color: #000; }
 .dah_btn_order {
     width: auto; min-width: 114px; min-height: 36px; margin-top: auto;
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    border: 1px solid rgba(19,34,84,.58); border-radius: 7px; color: #132254; padding: 7px 13px;
+    border: 1px solid rgba(0,0,0,.58); border-radius: 7px; color: #000; padding: 7px 13px;
     background: transparent !important; background-image: none !important;
     font-size: calc(.62rem + .5pt); font-weight: 700; letter-spacing: .01em;
     box-shadow: none !important; backdrop-filter: none; -webkit-backdrop-filter: none;
 }
 .dah_btn_order i { font-size: .82rem; }
-.dah_btn_order:hover { background: rgba(19,34,84,.06) !important; color: #132254; box-shadow: none !important; }
+.dah_btn_order:hover { background: rgba(0,0,0,.06) !important; color: #000; box-shadow: none !important; }
 
 /* ── HOME: products grid (4 desktop / 2 mobile) ──────────────────── */
 .dah_home_product_grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
@@ -588,18 +588,19 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
 .dah_cart_items { display: flex; flex-direction: column; gap: 12px; }
 .dah_cart_empty { color: var(--dah-text); font-size: .92rem; padding: 14px 0; text-align: center; }
 .dah_cart_line {
-    display: grid; grid-template-columns: 58px 1fr auto; gap: 12px; align-items: center;
-    background: var(--dah-surface); border: 1px solid var(--dah-line); border-radius: 12px; padding: 10px;
+    position: relative; display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 14px; align-items: center;
+    background: #fff; border: 0; border-bottom: 1px solid #eeeae4; border-radius: 0; padding: 13px 4px;
 }
 .dah_cart_line img {
-    width: 58px; height: 58px; border-radius: 10px; object-fit: contain;
-    background: var(--dah-surface);
+    width: 78px; height: 78px; border-radius: 12px; object-fit: contain;
+    background: #f7f7f5;
 }
-.dah_cart_line_info { min-width: 0; }
-.dah_cart_line_info b { display: block; font-size: .9rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dah_cart_line_info { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px 12px; padding-right: 3px; }
+.dah_cart_line_info b { grid-column: 1 / -1; display: block; padding-right: 27px; color: #000; font-size: .92rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dah_cart_line_info span { display: block; font-size: .78rem; color: var(--dah-text); }
-.dah_cart_line_meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.dah_cart_line_price { font-size: .9rem; font-weight: 700; color: var(--dah-gold-dark); }
+.dah_cart_line_price { color: #000 !important; font-size: .92rem !important; font-weight: 600; }
+.dah_cart_line_remove { position: absolute; z-index: 2; top: 10px; right: 4px; width: 27px; height: 27px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #aaa59d; font-size: 21px; line-height: 1; cursor: pointer; }
+.dah_cart_line_remove:hover { background: #f5f2ed; color: #111; }
 .dah_qty { display: flex; align-items: center; gap: 6px; }
 .dah_qty button {
     width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--dah-line);
@@ -608,6 +609,7 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
 }
 .dah_qty button:hover { border-color: var(--dah-gold); color: var(--dah-gold-dark); }
 .dah_qty span { min-width: 22px; text-align: center; font-weight: 600; font-size: .9rem; }
+.dah_qty button[data-dah-qty="1"] { border-color: rgba(37,211,102,.45); color: #159447; }
 
 .dah_cart_extras { margin-top: 22px; }
 .dah_cart_extras h4 {
@@ -917,7 +919,7 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
 .o_wsale_products_page .o_wsale_products_item_title {
     order: 0 !important; display: block !important; width: 100%; font-family: var(--dah-sans); font-size: calc(1rem - .5pt); font-weight: 700; line-height: 1.35; margin: 0; text-align: center;
 }
-.o_wsale_products_page .o_wsale_products_item_title a { color: #132254; }
+.o_wsale_products_page .o_wsale_products_item_title a { color: #000; }
 .o_wsale_products_page .o_wsale_product_rating_wrapper { color: var(--dah-gold); margin-top: 4px; }
 .o_wsale_products_page .o_wsale_product_rating_wrapper .fa { font-size: .78rem; }
 .o_wsale_products_page .o_wsale_product_rating_wrapper .fa-star-o { color: #d9d4cb; }
@@ -936,17 +938,17 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     align-items: center !important; justify-content: center !important;
     gap: 10px; margin-top: 9px; text-align: center;
 }
-.o_wsale_products_page .dah-shop-card-price { width: 100%; color: #132254; font-size: calc(1.04rem - .5pt); font-weight: 400; text-align: center; }
+.o_wsale_products_page .dah-shop-card-price { width: 100%; color: #000; font-size: calc(1.04rem - .5pt); font-weight: 400; text-align: center; }
 .o_wsale_products_page .dah-shop-product-price-link { font-weight: 400; }
 .o_wsale_products_page .dah-shop-order-button {
     display: inline-flex; min-width: 114px; min-height: 36px; align-items: center; justify-content: center; gap: 8px;
-    padding: 7px 13px; border: 1px solid rgba(19,34,84,.58); border-radius: 7px;
+    padding: 7px 13px; border: 1px solid rgba(0,0,0,.58); border-radius: 7px;
     background: transparent !important; background-image: none !important;
-    color: #132254; font-size: calc(.62rem + .5pt); font-weight: 700; letter-spacing: .01em; text-decoration: none;
+    color: #000; font-size: calc(.62rem + .5pt); font-weight: 700; letter-spacing: .01em; text-decoration: none;
     box-shadow: none !important; backdrop-filter: none; -webkit-backdrop-filter: none;
 }
 .o_wsale_products_page .dah-shop-order-button i { font-size: .82rem; }
-.o_wsale_products_page .dah-shop-order-button:hover { background: rgba(19,34,84,.06) !important; color: #132254; box-shadow: none !important; }
+.o_wsale_products_page .dah-shop-order-button:hover { background: rgba(0,0,0,.06) !important; color: #000; box-shadow: none !important; }
 .o_wsale_products_page .o_wsale_product_action_row {
     display: flex; align-items: center; justify-content: flex-end; gap: 6px;
 }
@@ -1173,30 +1175,6 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
 }
 .dah-product-field-hint { display: block; margin-top: 6px; color: #9a948a; font-size: .74rem; }
 
-.dah-color-theme-input { display: flex; align-items: center; gap: 10px; }
-.dah-color-theme-input input[type="text"] { flex: 1; width: auto; }
-.dah-color-picker {
-    position: relative; width: 46px; height: 46px; flex: 0 0 46px;
-    display: grid; place-items: center; cursor: pointer;
-    border: 1px solid #ded9d2; border-radius: 8px; background: #fff;
-    transition: border-color .18s ease, box-shadow .18s ease;
-}
-.dah-color-picker:hover { border-color: var(--dah-green); }
-.dah-color-picker input[type="color"] {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    opacity: 0; cursor: pointer; border: 0; padding: 0; margin: 0;
-}
-.dah-color-picker i { color: var(--dah-green); font-size: 18px; pointer-events: none; }
-.dah-color-picker-field {
-    width: 100%; min-height: 52px; padding: 7px 12px;
-    display: flex; align-items: center; gap: 12px;
-    border: 1px solid #ded9d2; border-radius: 8px; background: #fff;
-}
-.dah-color-picker-field input[type="color"] {
-    width: 58px; height: 38px; padding: 2px; border: 1px solid #d6d0c7;
-    border-radius: 7px; background: #fff; cursor: pointer; opacity: 1;
-}
-.dah-color-picker-field span { color: var(--dah-ink); font-size: .86rem; font-weight: 700; letter-spacing: .04em; }
 .dah-cart-customization { display: block; margin-top: 3px; color: #5d554a; font-size: .7rem; line-height: 1.35; }
 .dah-cart-customization b { color: #132254; font-size: inherit; }
 
@@ -1447,7 +1425,6 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     .o_wsale_product_page .o_wsale_product_details_content_section_title h1 { margin-top: 4px; font-family: var(--dah-serif); font-size: 1.35rem; }
     .o_wsale_product_page .o_wsale_product_details_content_section_price .price,
     .o_wsale_product_page .o_wsale_product_details_content_section_price .product_price { font-size: 1.3rem; }
-    .o_wsale_product_page .dah-color-theme { gap: 12px; }
     .dah-product-tabs { width: 100%; margin-top: 12px; padding: 0 16px; background: #fff; }
     .dah-product-tabs-nav { overflow-x: auto; flex-wrap: nowrap; }
     .dah-product-tabs-nav .nav-link { padding: 11px 12px; font-size: .72rem; white-space: nowrap; }
@@ -1638,4 +1615,127 @@ body:has(.dah_page) .toast:has(.o_cart_product_image) {
     .dah_fixed_order_bar.dah_visible { bottom: 82px; }
     .dah_back_top { bottom: 90px !important; }
     body.dah_sticky_cart_visible .dah_back_top { bottom: 152px !important; }
+}
+
+@media (max-width: 760px) {
+    .dah-mobile-banner-search {
+        position: relative;
+        z-index: 25;
+        width: calc(100% - 28px);
+        height: 48px;
+        margin: 7px 14px 9px;
+        padding: 4px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 78px;
+        gap: 4px;
+        border: 1px solid #d9d9d9;
+        border-radius: 26px;
+        background: #fff;
+        box-shadow: none;
+    }
+    .dah-mobile-banner-search .dah-mobile-search-field {
+        height: 38px;
+        padding: 0 8px 0 11px;
+        gap: 8px;
+        border: 0;
+        border-radius: 22px;
+        background: transparent;
+    }
+    .dah-mobile-banner-search .dah-mobile-search-field svg {
+        width: 16px;
+        color: #111;
+        stroke: currentColor;
+    }
+    .dah-mobile-banner-search input {
+        color: #222;
+        font-size: 12px;
+    }
+    .dah-mobile-banner-search input::placeholder { color: #777; }
+    .dah-mobile-banner-search > button {
+        height: 38px;
+        padding: 0 13px;
+        border: 0;
+        border-radius: 21px;
+        background: #132254;
+        color: #fff;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: .03em;
+    }
+    .dah-mobile-banner-search .dah-mobile-search-suggestions {
+        top: calc(100% + 5px);
+        left: 0;
+        right: 0;
+        z-index: 50;
+    }
+}
+
+/* Product-page quantity: separate round controls with a plain value. */
+.o_wsale_product_page .css_quantity,
+.o_wsale_product_page #add_to_cart_wrap > .css_quantity {
+    width: max-content !important;
+    min-width: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+.o_wsale_product_page .css_quantity .btn {
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    flex: 0 0 28px !important;
+    padding: 0 !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    border: 1px solid #e2ded7 !important;
+    border-radius: 50% !important;
+    background: #fff !important;
+    background-image: none !important;
+    color: #444 !important;
+    box-shadow: none !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+}
+.o_wsale_product_page .css_quantity .btn:last-child {
+    border-color: rgba(37, 211, 102, .48) !important;
+    color: #159447 !important;
+}
+.o_wsale_product_page .css_quantity input,
+.o_wsale_product_page .css_quantity .quantity {
+    width: 24px !important;
+    min-width: 24px !important;
+    height: 28px !important;
+    flex: 0 0 24px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #222 !important;
+    text-align: center !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+
+/* Home and Shop product-card Order Now buttons: outlined rounded pills. */
+.dah_home .dah_btn_order,
+.o_wsale_products_page .dah-shop-order-button {
+    border: 1px solid #000 !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    background-image: none !important;
+    color: #000 !important;
+}
+.dah_home .dah_btn_order:hover,
+.o_wsale_products_page .dah-shop-order-button:hover {
+    border-color: #000 !important;
+    background: rgba(0, 0, 0, .05) !important;
+    color: #000 !important;
 }

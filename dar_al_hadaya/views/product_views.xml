@@ -116,14 +116,9 @@
                        string="Customization"
                        placeholder="Customer customization..."
                        invisible="display_type"/>
-                <field name="dah_color_theme"
-                       string="Color Theme"
-                       placeholder="Color theme..."
-                       invisible="display_type"/>
             </xpath>
             <xpath expr="//field[@name='order_line']/list/field[@name='name']" position="after">
                 <field name="dah_customization" string="Customization" optional="show" invisible="display_type"/>
-                <field name="dah_color_preview" string="Color Theme" widget="html" optional="show" invisible="display_type"/>
             </xpath>
         </field>
     </record>
@@ -135,7 +130,6 @@
         <field name="arch" type="xml">
             <field name="name" position="after">
                 <field name="dah_customization" string="Customization" optional="show"/>
-                <field name="dah_color_preview" string="Color Theme" widget="html" optional="show"/>
             </field>
         </field>
     </record>
@@ -147,7 +141,6 @@
         <field name="arch" type="xml">
             <field name="name" position="after">
                 <field name="dah_customization" string="Customization"/>
-                <field name="dah_color_theme" string="Color Theme"/>
             </field>
         </field>
     </record>
@@ -159,7 +152,6 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='invoice_line_ids']/list//field[@name='name']" position="after">
                 <field name="dah_customization" string="Customization" optional="show"/>
-                <field name="dah_color_preview" string="Color Theme" widget="html" optional="show"/>
             </xpath>
         </field>
     </record>
@@ -167,14 +159,12 @@
     <template id="dar_al_hadaya_invoice_report_customization" inherit_id="account.report_invoice_document">
         <xpath expr="//td[@name='account_invoice_line_name']/span[@t-field='line.name']" position="after">
             <div t-if="line.dah_customization" class="small"><strong>Customization:</strong> <span t-esc="line.dah_customization"/></div>
-            <div t-if="line.dah_color_theme" class="small"><strong>Color Theme:</strong> <span t-field="line.dah_color_preview"/></div>
         </xpath>
     </template>
 
     <template id="dar_al_hadaya_sale_report_customization" inherit_id="sale.report_saleorder_document">
         <xpath expr="//td[@name='td_product_name']/span[@t-field='line.name']" position="after">
             <div t-if="line.dah_customization" class="small"><strong>Customization:</strong> <span t-esc="line.dah_customization"/></div>
-            <div t-if="line.dah_color_theme" class="small"><strong>Color Theme:</strong> <span t-field="line.dah_color_preview"/></div>
         </xpath>
     </template>
 </odoo>
