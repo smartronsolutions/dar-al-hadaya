@@ -298,10 +298,7 @@
                     </nav>
                     <span>&#169; <span id="dah_footer_year">2026</span> DAR AL HADAYA. All rights reserved.</span>
                     <div class="dah_footer_payments" aria-label="Accepted payment methods">
-                        <img src="/dar_al_hadaya/static/src/img/payments/visa.svg" alt="Visa" loading="lazy"/>
-                        <img src="/dar_al_hadaya/static/src/img/payments/mastercard.svg" alt="Mastercard" loading="lazy"/>
-                        <img src="/dar_al_hadaya/static/src/img/payments/google-pay.svg" alt="Google Pay" loading="lazy"/>
-                        <img src="/dar_al_hadaya/static/src/img/payments/apple-pay.svg" alt="Apple Pay" loading="lazy"/>
+                        <img class="dah_footer_payment_logos" src="/dar_al_hadaya/static/src/img/payments/payments.png" alt="Mastercard, Visa, Apple Pay and Google Pay" loading="lazy"/>
                     </div>
                 </div>
             </footer>
