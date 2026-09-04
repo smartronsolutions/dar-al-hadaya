@@ -51,7 +51,7 @@
          with their own images. Any category flagged "For Dar Al Hadaya" in the backend
          appears here automatically, in the same order as on the homepage. -->
     <xpath expr="//div[hasclass('products_header')]" position="before">
-        <div class="dah-shop-category-rail-wrap d-lg-none" t-if="not search">
+        <div class="dah-shop-category-rail-wrap" t-if="not search">
             <t t-set="dah_shop_categories" t-value="request.env['product.public.category'].sudo().search([('dah_for_dar_al_hadaya', '=', True), ('website_id', 'in', [False, website.id])], order='sequence, id')"/>
             <nav class="dah_shop_category_rail dah_cat_scroll" id="dah_cat_scroll" aria-label="Shop by category">
                 <a t-foreach="dah_shop_categories"
@@ -109,16 +109,16 @@
     <xpath expr="//t[@t-call='website_sale.filter_products_price']" position="before">
         <section class="dah-shop-filter-section dah-shop-product-categories">
             <h5>Categories</h5>
-            <t t-set="selected_product_category" t-value="int(request.httprequest.args.get('product_category', 0)) if request.httprequest.args.get('product_category', '').isdigit() else 0"/>
+            <t t-set="selected_product_category" t-value="category.id if category else 0"/>
             <t t-set="dah_shop_products" t-value="request.env['product.template'].sudo().search(website.sale_product_domain())"/>
-            <t t-set="dah_product_categories" t-value="dah_shop_products.mapped('categ_id').sorted(key=lambda product_category: ((product_category.name or '').lower(), product_category.id))"/>
+            <t t-set="dah_product_categories" t-value="request.env['product.public.category'].sudo().search([('dah_for_dar_al_hadaya', '=', True), ('website_id', 'in', [False, website.id])], order='sequence, id')"/>
             <label class="dah-shop-filter-check">
                 <input
                     type="radio"
                     name="product_category"
                     value="0"
                     t-att-checked="not selected_product_category"
-                    t-att-data-dah-filter-url="keep(product_category=0, page=0)"
+                    t-att-data-dah-filter-url="keep('/shop', product_category=0, page=0)"
                 />
                 <span>All Categories</span>
             </label>
@@ -128,7 +128,7 @@
                     name="product_category"
                     t-att-value="product_category.id"
                     t-att-checked="selected_product_category == product_category.id"
-                    t-att-data-dah-filter-url="keep(product_category=product_category.id, page=0)"
+                    t-att-data-dah-filter-url="keep('/shop/category/' + slug(product_category), product_category=0, page=0)"
                 />
                 <span t-out="product_category.name"/>
             </label>
@@ -252,20 +252,20 @@
 
             <section class="dah-shop-filter-section dah-shop-product-categories">
                 <h5>Categories</h5>
-                <t t-set="selected_product_category" t-value="int(request.httprequest.args.get('product_category', 0)) if request.httprequest.args.get('product_category', '').isdigit() else 0"/>
+                <t t-set="selected_product_category" t-value="category.id if category else 0"/>
                 <t t-set="dah_shop_products" t-value="request.env['product.template'].sudo().search(website.sale_product_domain())"/>
-                <t t-set="dah_product_categories" t-value="dah_shop_products.mapped('categ_id').sorted(key=lambda product_category: ((product_category.name or '').lower(), product_category.id))"/>
+                <t t-set="dah_product_categories" t-value="request.env['product.public.category'].sudo().search([('dah_for_dar_al_hadaya', '=', True), ('website_id', 'in', [False, website.id])], order='sequence, id')"/>
                 <label class="dah-shop-filter-check">
                     <input type="radio" name="mobile_product_category" value="0"
                         t-att-checked="not selected_product_category"
-                        t-att-data-dah-filter-url="keep(product_category=0, page=0)"/>
+                        t-att-data-dah-filter-url="keep('/shop', product_category=0, page=0)"/>
                     <span>All Categories</span>
                 </label>
                 <label class="dah-shop-filter-check" t-foreach="dah_product_categories" t-as="product_category">
                     <input type="radio" name="mobile_product_category"
                         t-att-value="product_category.id"
                         t-att-checked="selected_product_category == product_category.id"
-                        t-att-data-dah-filter-url="keep(product_category=product_category.id, page=0)"/>
+                        t-att-data-dah-filter-url="keep('/shop/category/' + slug(product_category), product_category=0, page=0)"/>
                     <span t-out="product_category.name"/>
                 </label>
             </section>

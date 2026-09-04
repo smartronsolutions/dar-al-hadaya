@@ -1042,6 +1042,25 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
 }
 .o_wsale_products_page .dah-shop-result-count { margin: 2px 0 14px; color: #66615a; font-size: 12px; }
 
+/* Simple flat Shop sorting control. */
+.o_wsale_products_page .products_header .o_sortby_dropdown .dropdown-toggle {
+    background: #fff !important;
+    border: 1px solid #dedbd4 !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+    color: #292822 !important;
+    text-shadow: none !important;
+    transform: none !important;
+}
+.o_wsale_products_page .products_header .o_sortby_dropdown .dropdown-toggle:hover,
+.o_wsale_products_page .products_header .o_sortby_dropdown .dropdown-toggle.show {
+    background: #f7f6f3 !important;
+}
+.o_wsale_products_page .products_header .o_sortby_dropdown .dropdown-toggle:focus-visible {
+    outline: 2px solid #132254;
+    outline-offset: 2px;
+}
+
 /* ── Features strip ───────────────────────────────────────────────── */
 .o_wsale_products_page .dah-shop-features {
     display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;

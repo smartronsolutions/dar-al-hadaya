@@ -535,13 +535,14 @@
                 startX = event.clientX;
                 startScroll = rail.scrollLeft;
                 pauseAuto();
-                try { rail.setPointerCapture(event.pointerId); } catch (err) {}
             });
             rail.addEventListener('pointermove', event => {
                 if (!dragging) { return; }
                 const dx = event.clientX - startX;
                 if (!moved && Math.abs(dx) > 4) {
                     moved = true;
+                    // Preserve the anchor click target until an actual drag begins.
+                    try { rail.setPointerCapture(event.pointerId); } catch (err) {}
                     rail.classList.add('dah_dragging');
                 }
                 if (moved) { rail.scrollLeft = startScroll - dx; }
@@ -553,8 +554,9 @@
                 if (rail.hasPointerCapture(event.pointerId)) { rail.releasePointerCapture(event.pointerId); }
                 resumeAuto(1800);
             };
-            rail.addEventListener('pointerup', endDrag);
-            rail.addEventListener('pointercancel', endDrag);
+            window.addEventListener('pointerup', endDrag);
+            window.addEventListener('pointercancel', endDrag);
+            rail.addEventListener('dragstart', event => event.preventDefault());
             rail.addEventListener('lostpointercapture', () => {
                 if (!dragging) { return; }
                 dragging = false;
