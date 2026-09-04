@@ -1,6 +1,6 @@
 {
     'name': 'Dar Al Hadaya',
-    'version': '19.0.1.118.0',
+    'version': '19.0.1.127.0',
     'category': 'Website',
     'summary': 'Dar Al Hadaya - premium mobile-first gifting e-commerce website',
     'description': """
@@ -41,6 +41,7 @@ Premium, mobile-first gifting e-commerce website for Dar Al Hadaya.
         'views/product_views.xml',
         'views/menus.xml',
         'views/dah_common.xml',
+        'views/website_policies.xml',
         'views/website_home.xml',
         'views/website_product.xml',
         'views/website_shop.xml',

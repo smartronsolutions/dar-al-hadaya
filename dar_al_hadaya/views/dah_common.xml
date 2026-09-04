@@ -258,7 +258,7 @@
                     <section class="dah_footer_group">
                         <h3>INFO</h3><button class="dah_footer_toggle" type="button" aria-expanded="false">INFO</button>
                         <div class="dah_footer_content"><ul>
-                            <li><a href="/terms">Terms &amp; Conditions</a></li>
+                            <li><a href="/terms-conditions">Terms &amp; Conditions</a></li>
                             <li><a href="/privacy">Privacy Policy</a></li>
                             <li><a href="/refund-policy">Refund Policy</a></li>
                             <li><a href="/blog">Blog</a></li>
@@ -291,7 +291,7 @@
 
                 <div class="dah_footer_bottom">
                     <nav class="dah_footer_legal" aria-label="Footer legal links">
-                        <a href="/terms">Terms &amp; Conditions</a>
+                        <a href="/terms-conditions">Terms &amp; Conditions</a>
                         <a href="/privacy">Privacy Policy</a>
                         <a href="/refund-policy">Refund Policy</a>
                         <a href="/blog">Blog</a>

@@ -46,6 +46,28 @@
     <xpath expr="//div[@t-if='opt_wsale_categories']" position="replace"/>
     <xpath expr="//t[@t-call='website_sale.pricelist_list']" position="replace"/>
 
+    <!-- Mobile: the Search / Sort By / Filter toolbar is hidden by CSS and replaced by the
+         same "Shop by Category" rail as the homepage: the Dar Al Hadaya public categories
+         with their own images. Any category flagged "For Dar Al Hadaya" in the backend
+         appears here automatically, in the same order as on the homepage. -->
+    <xpath expr="//div[hasclass('products_header')]" position="before">
+        <div class="dah-shop-category-rail-wrap d-lg-none" t-if="not search">
+            <t t-set="dah_shop_categories" t-value="request.env['product.public.category'].sudo().search([('dah_for_dar_al_hadaya', '=', True), ('website_id', 'in', [False, website.id])], order='sequence, id')"/>
+            <nav class="dah_shop_category_rail dah_cat_scroll" id="dah_cat_scroll" aria-label="Shop by category">
+                <a t-foreach="dah_shop_categories"
+                   t-as="shop_category"
+                   t-att-href="'/shop/category/' + slug(shop_category)"
+                   t-att-class="'dah_cat_tile' + (' dah-active' if category and category.id == shop_category.id else '')">
+                    <span class="dah_cat_tile_media">
+                        <img t-if="shop_category.image_1920" t-att-src="website.image_url(shop_category, 'image_512')" t-att-alt="shop_category.name" loading="lazy"/>
+                        <span t-else="" class="dah_cat_fallback" t-esc="shop_category.name[:1]"/>
+                    </span>
+                    <span class="dah_cat_tile_name" t-esc="shop_category.name"/>
+                </a>
+            </nav>
+        </div>
+    </xpath>
+
     <!-- Desktop: count and Best Selling share the row directly above products. -->
     <xpath expr="//div[hasclass('products_header')]" position="inside">
         <p class="dah-shop-result-count dah-shop-result-count--desktop d-none d-lg-block" t-if="products">
@@ -212,7 +234,7 @@
                 </t>
             </a>
             <a class="dah-shop-order-button" t-att-href="product_href">
-                <i class="fa fa-shopping-bag" aria-hidden="true"/>
+                <i class="fa fa-shopping-cart" aria-hidden="true"/>
                 <span>ORDER NOW</span>
             </a>
         </div>

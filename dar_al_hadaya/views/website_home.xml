@@ -87,7 +87,7 @@
                 <div class="dah_product_price" t-esc="product.currency_id.format(product.list_price)"/>
             </a>
             <a class="dah_btn dah_btn_order" t-att-href="product.website_url">
-                <i class="fa fa-shopping-bag" aria-hidden="true"/>
+                <i class="fa fa-shopping-cart" aria-hidden="true"/>
                 <span>ORDER NOW</span>
             </a>
         </div>
