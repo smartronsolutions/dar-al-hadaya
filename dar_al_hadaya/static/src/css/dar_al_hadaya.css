@@ -1288,7 +1288,12 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     display: grid !important; place-items: center; color: #132254;
     background: #f4f1eb !important;
 }
-.o_wsale_product_page .dah-product-video-indicator .fa { font-size: 25px; }
+.o_wsale_product_page .dah-product-video-indicator .fa {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    z-index: 1; font-size: 25px; line-height: 1; color: #132254;
+    background: #fff; border-radius: 50%; padding: 2px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, .2); pointer-events: none;
+}
 .o_wsale_product_page .o_carousel_product_outer .product_detail_img {
     display: block; width: 100%; height: clamp(420px, 43vw, 600px); max-height: 600px;
     object-fit: contain; object-position: center; background: #fff;
@@ -1415,32 +1420,32 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     }
     .o_wsale_product_page #o-carousel-product { position: relative; overflow: hidden; }
     .o_wsale_product_page .o_carousel_product_indicators {
-        position: absolute !important; z-index: 5; left: 50%; bottom: 12px;
-        width: auto !important; max-width: calc(100% - 32px); margin: 0 !important;
-        padding: 7px 10px !important; display: flex !important; justify-content: center;
-        gap: 7px; overflow: visible; border: 1px solid rgba(255,255,255,.55);
-        border-radius: 999px; background: rgba(255,255,255,.66);
-        box-shadow: 0 4px 14px rgba(19,34,84,.12);
-        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-        transform: translateX(-50%); order: initial;
+        position: static !important;
+        width: 100% !important; max-width: 100%; margin: 0 !important;
+        padding: 12px 16px !important; display: flex !important;
+        flex: 0 0 auto; max-height: none; justify-content: flex-start;
+        gap: 8px; overflow-x: auto; overflow-y: hidden;
+        border: 0; border-radius: 0; background: #fff;
+        box-shadow: none; transform: none; order: 2;
     }
     .o_wsale_product_page .o_carousel_product_indicators > ol {
-        display: flex !important; align-items: center; justify-content: center;
-        gap: 7px; margin: 0 !important; padding: 0 !important;
+        display: flex !important; align-items: center; justify-content: flex-start;
+        flex-wrap: nowrap; flex: 0 0 auto;
+        gap: 8px; margin: 0 !important; padding: 0 !important;
     }
     .o_wsale_product_page .o_carousel_product_indicators li {
-        width: 8px !important; height: 8px !important; flex: 0 0 8px !important;
-        margin: 0 !important; padding: 0 !important; border: 1px solid rgba(19,34,84,.28) !important;
-        border-radius: 50% !important; background: rgba(255,255,255,.92) !important;
+        width: 64px !important; height: 64px !important; flex: 0 0 64px !important;
+        margin: 0 !important; padding: 0 !important; border: 1px solid #e2ded6 !important;
+        border-radius: 8px !important; background: #fff !important;
         opacity: 1 !important; overflow: hidden;
     }
     .o_wsale_product_page .o_carousel_product_indicators li.active {
-        width: 10px !important; height: 10px !important; flex-basis: 10px !important;
-        border-color: #132254 !important; background: #132254 !important;
+        border-color: #132254 !important; box-shadow: inset 0 0 0 1px #132254;
     }
     .o_wsale_product_page .o_carousel_product_indicators li img,
     .o_wsale_product_page .o_carousel_product_indicators li .o_product_video_thumb,
-    .o_wsale_product_page .dah-product-video-indicator .fa { display: none !important; }
+    .o_wsale_product_page .dah-product-video-indicator .fa { display: block !important; }
+    .o_wsale_product_page .o_carousel_product_indicators li img { object-fit: contain; }
     .o_wsale_product_page .o_wsale_product_details_content_section_title h1 { margin-top: 4px; font-family: var(--dah-serif); font-size: 1.35rem; }
     .o_wsale_product_page .o_wsale_product_details_content_section_price .price,
     .o_wsale_product_page .o_wsale_product_details_content_section_price .product_price { font-size: 1.3rem; }

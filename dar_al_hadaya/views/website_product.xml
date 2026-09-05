@@ -68,6 +68,7 @@
             data-bs-target="#o-carousel-product"
             data-bs-slide-to="0"
             aria-label="Play product video">
+            <img t-att-src="website.image_url(product, 'image_128')" alt="" loading="lazy"/>
             <i class="fa fa-play-circle" aria-hidden="true"></i>
         </li>
     </xpath>
