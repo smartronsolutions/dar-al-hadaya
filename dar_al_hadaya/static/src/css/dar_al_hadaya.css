@@ -1269,6 +1269,18 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
 }
 .o_wsale_product_page .o_carousel_product_indicators li.active { opacity: 1; border-color: var(--dah-green); }
 .o_wsale_product_page .o_carousel_product_indicators li img { width: 100%; height: 100%; object-fit: cover; }
+/* Bootstrap dots indent their contents; Odoo also hides image wrappers below lg.
+   This gallery uses real thumbnails on every screen size instead. */
+@media (max-width: 991.98px) {
+    .o_wsale_product_page #o-carousel-product .o_carousel_product_indicators li {
+        text-indent: 0;
+    }
+    .o_wsale_product_page #o-carousel-product .o_carousel_product_indicators li > div {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+}
 .o_wsale_product_page .o_carousel_product_outer {
     flex: 1; min-width: 0; border: 1px solid #eee9e1; border-radius: 12px;
     overflow: hidden; background: #fff;
