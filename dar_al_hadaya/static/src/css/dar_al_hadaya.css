@@ -1305,11 +1305,22 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     flex: 1; min-width: 0; border: 1px solid #eee9e1; border-radius: 12px;
     overflow: hidden; background: #fff;
 }
+/* Let the active slide set the gallery ratio (9:16 video / 4:5 image) instead
+   of Odoo's fixed square --o-wsale-product-image-ratio, which kept the box
+   square and clipped the video at the bottom and the 4:5 image. */
+.o_wsale_product_page #o-carousel-product .o_carousel_product_outer,
+.o_wsale_product_page #o-carousel-product .o_carousel_product_outer .carousel-inner {
+    aspect-ratio: auto !important; height: auto !important;
+}
 /* Video slide: override Bootstrap h-100 so the carousel-item itself drives 9:16 height */
 .o_wsale_product_page .o_carousel_product_outer .carousel-item { border-radius: 12px; height: auto !important; }
 .o_wsale_product_page .o_carousel_product_outer .dah-product-video-slide {
     width: 100% !important; height: auto !important;
     aspect-ratio: 9 / 16 !important;
+}
+/* Only the ACTIVE video slide becomes a flex box; otherwise Bootstrap's
+   display:none keeps it out of the layout (so image slides keep their 4:5 box). */
+.o_wsale_product_page .o_carousel_product_outer .dah-product-video-slide.active {
     display: flex !important; align-items: stretch; justify-content: center;
 }
 .o_wsale_product_page .dah-product-video-frame {
@@ -1366,12 +1377,15 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
         aspect-ratio: 9 / 16 !important;
     }
     .o_wsale_product_page .o_carousel_product_outer .product_detail_img {
-        width: 100%; height: auto; aspect-ratio: 4 / 5; max-height: none; object-fit: contain;
+        width: 100%; height: auto; aspect-ratio: 4 / 5; max-height: none; object-fit: cover;
     }
 }
 .o_wsale_product_page .o_carousel_product_outer .product_detail_img {
     display: block; width: 100%; height: auto; aspect-ratio: 4 / 5;
-    object-fit: contain; object-position: center; background: #fff;
+    object-fit: cover; object-position: center; background: #fff;
+}
+.o_wsale_product_page .o_carousel_product_outer .o_product_detail_img_wrapper {
+    height: auto !important;
 }
 .o_wsale_product_page .o_carousel_product_outer .carousel-control-prev i,
 .o_wsale_product_page .o_carousel_product_outer .carousel-control-next i {
@@ -1466,7 +1480,7 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     .o_wsale_product_page .o_carousel_product_outer { border-radius: 0; }
     .o_wsale_product_page .o_carousel_product_outer .carousel-item { border-radius: 0; }
     .o_wsale_product_page .o_carousel_product_outer .product_detail_img {
-        width: 100%; height: min(92vw, 520px); max-height: none; object-fit: contain;
+        width: 100%; height: auto; aspect-ratio: 4 / 5; max-height: none; object-fit: cover;
     }
     .o_wsale_product_page #o-carousel-product { position: relative; overflow: hidden; }
     .o_wsale_product_page .o_carousel_product_indicators {
