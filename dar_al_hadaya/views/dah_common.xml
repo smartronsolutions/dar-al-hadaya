@@ -2,6 +2,23 @@
 <odoo>
 <data>
 
+<!-- Keep category hierarchy in the mobile drawer, including deeper children. -->
+<template id="dah_mobile_category_branch" name="Mobile category branch">
+    <t t-set="dah_category_children" t-value="dah_mobile_categories.filtered(lambda item: item.parent_id == dah_category)"/>
+    <details t-if="dah_category_children" class="dah-mobile-category-branch">
+        <summary>
+            <a t-att-href="'/shop/category/%s' % slug(dah_category)" t-out="dah_category.name"/>
+            <i class="fa fa-angle-right" aria-hidden="true"/>
+        </summary>
+        <div class="dah-mobile-category-children">
+            <t t-foreach="dah_category_children" t-as="dah_category">
+                <t t-call="dar_al_hadaya.dah_mobile_category_branch"/>
+            </t>
+        </div>
+    </details>
+    <a t-else="" t-att-href="'/shop/category/%s' % slug(dah_category)" t-out="dah_category.name"/>
+</template>
+
 <!-- ══════════════════════════════════════════════════════════════════
      DAR AL HADAYA — COMMON WEBSITE ELEMENTS
      Global layout pieces that appear on every website page, in the same
@@ -138,7 +155,9 @@
                                 <button class="dah-mobile-nav-row dah-mobile-submenu-toggle" type="button" aria-expanded="false"><i class="fa fa-th-large"/><span>CATEGORY</span><i class="fa fa-angle-right dah-mobile-row-arrow"/></button>
                                 <div class="dah-mobile-submenu">
                                     <a href="/shop">All Products</a>
-                                    <a t-foreach="dah_mobile_categories" t-as="category" t-att-href="'/shop/category/%s' % slug(category)" t-out="category.name"/>
+                                    <t t-foreach="dah_mobile_categories.filtered(lambda item: not item.parent_id or item.parent_id.id not in dah_mobile_categories.ids)" t-as="dah_category">
+                                        <t t-call="dar_al_hadaya.dah_mobile_category_branch"/>
+                                    </t>
                                 </div>
                             </div>
                             <div class="dah-mobile-nav-group">
@@ -151,6 +170,18 @@
                                 </div>
                             </div>
                             <button class="dah-mobile-nav-row" id="dah_mobile_menu_cart" type="button"><i class="fa fa-shopping-cart"/><span>CART</span></button>
+                        </div>
+                        <div class="dah-mobile-menu-support">
+                            <a class="dah-mobile-account" t-att-href="'/web/login' if request.env.user._is_public() else '/my/home'">
+                                <i class="fa fa-user-o" aria-hidden="true"/>
+                                <span t-out="'Sign In' if request.env.user._is_public() else 'My Account'"/>
+                                <i class="fa fa-angle-right" aria-hidden="true"/>
+                            </a>
+                            <a class="dah-mobile-account dah-mobile-help" id="dah_mobile_help_wa" href="https://wa.me/97433344765" target="_blank" rel="noopener">
+                                <i class="fa fa-whatsapp" aria-hidden="true"/>
+                                <span>Need help? Chat on WhatsApp</span>
+                                <i class="fa fa-angle-right" aria-hidden="true"/>
+                            </a>
                         </div>
                     </div>
                     <div class="dah-desktop-nav-links">

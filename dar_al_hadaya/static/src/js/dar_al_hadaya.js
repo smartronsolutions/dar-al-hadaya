@@ -57,7 +57,53 @@
             this.wishlist();
             this.lowerNav();
             this.productPage();
+            this.productVideoPlayback();
             this.shopFilters();
+        },
+
+        productVideoPlayback: function () {
+            const gallery = this.$('#o-carousel-product');
+            if (!gallery) { return; }
+            const frames = Array.from(gallery.querySelectorAll('.dah-product-video-frame'));
+            const stop = frame => {
+                frame.querySelectorAll('video').forEach(video => video.pause());
+                frame.querySelectorAll('iframe').forEach(iframe => {
+                    if (iframe.getAttribute('src') !== 'about:blank') {
+                        iframe.dataset.dahVideoSrc = iframe.getAttribute('src');
+                        iframe.src = 'about:blank';
+                    }
+                });
+            };
+            const restore = frame => {
+                const bounds = frame.getBoundingClientRect();
+                if (document.hidden || bounds.bottom <= 0 || bounds.top >= window.innerHeight) { return; }
+                frame.querySelectorAll('video[autoplay]').forEach(video => {
+                    const playback = video.play();
+                    if (playback) { playback.catch(() => {}); }
+                });
+                frame.querySelectorAll('iframe').forEach(iframe => {
+                if (iframe.dataset.dahVideoSrc && iframe.getAttribute('src') === 'about:blank') {
+                    iframe.src = iframe.dataset.dahVideoSrc;
+                }
+                });
+            };
+            gallery.addEventListener('slide.bs.carousel', () => frames.forEach(stop));
+            gallery.addEventListener('slid.bs.carousel', () => frames.forEach(frame => {
+                if (frame.closest('.carousel-item').classList.contains('active')) { restore(frame); }
+            }));
+            document.addEventListener('visibilitychange', () => {
+                frames.forEach(frame => {
+                    if (document.hidden) { stop(frame); }
+                    else if (frame.closest('.carousel-item').classList.contains('active')) { restore(frame); }
+                });
+            });
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+                    if (!entry.isIntersecting) { stop(entry.target); }
+                    else if (entry.target.closest('.carousel-item').classList.contains('active')) { restore(entry.target); }
+                }), {threshold: 0});
+                frames.forEach(frame => observer.observe(frame));
+            }
         },
 
         suppressStandardCartNotification: function () {
@@ -224,7 +270,7 @@
         /* ── whatsapp links ───────────────────────────────────── */
         whatsapp: function () {
             const waLink = 'https://wa.me/' + this.waNumber;
-            ['#dah_wa_link', '#dah_mobile_wa_link', '#dah_footer_wa_link', '#dah_footer_social_wa', '#dah_footer_mobile_social_wa', '#dah_hero_wa'].forEach(sel => {
+            ['#dah_wa_link', '#dah_mobile_wa_link', '#dah_mobile_help_wa', '#dah_footer_wa_link', '#dah_footer_social_wa', '#dah_footer_mobile_social_wa', '#dah_hero_wa'].forEach(sel => {
                 const el = this.$(sel);
                 if (el) { el.href = waLink; }
             });

@@ -34,11 +34,12 @@
     </xpath>
     <xpath expr="//div[hasclass('carousel-inner')]/t[@t-foreach='product_images']" position="before">
         <div t-if="dah_video_embed_url" class="carousel-item dah-product-video-slide h-100 w-100 text-center active">
-            <div class="dah-product-video-frame">
+            <div t-att-class="'dah-product-video-frame' + (' dah-product-video-upload' if dah_video_data['type'] == 'upload' else '')">
                 <video t-if="dah_video_data['type'] == 'upload'"
                        t-att-src="dah_video_embed_url"
-                       autoplay="autoplay" muted="muted" loop="loop"
+                       autoplay="autoplay" muted="muted"
                        playsinline="playsinline" controls="controls"
+                       t-att-poster="website.image_url(product, 'image_1024')"
                        preload="metadata"></video>
                 <iframe t-else=""
                         t-att-src="dah_video_embed_url"

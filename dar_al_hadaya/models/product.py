@@ -49,7 +49,7 @@ class ProductPublicCategory(models.Model):
     @api.depends_context('company', 'website_id')
     def _compute_has_published_products(self):
         super()._compute_has_published_products()
-        self.filtered('dah_navigation_category').has_published_products = True
+        self.filtered(lambda category: category.dah_navigation_category or category.dah_for_dar_al_hadaya).has_published_products = True
 
     @api.model
     def _search_has_published_products(self, operator, value):
@@ -59,6 +59,7 @@ class ProductPublicCategory(models.Model):
         return Domain.OR([
             product_domain,
             Domain('dah_navigation_category', '=', True),
+            Domain('dah_for_dar_al_hadaya', '=', True),
         ])
 
     @api.model
@@ -344,7 +345,7 @@ class ProductTemplate(models.Model):
         if re.fullmatch(r'[A-Za-z0-9_-]{6,20}', video_id or ''):
             return (
                 f'https://www.youtube-nocookie.com/embed/{video_id}'
-                '?autoplay=1&mute=1&playsinline=1&rel=0'
+                '?autoplay=0&mute=1&playsinline=1&rel=0'
             )
 
         if host in {'instagram.com', 'm.instagram.com'}:

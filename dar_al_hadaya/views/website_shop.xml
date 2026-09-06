@@ -2,6 +2,32 @@
 <odoo>
 <data>
 
+<template id="dah_shop_category_option" name="Shop category option">
+    <label class="dah-shop-filter-check">
+        <input type="radio" t-att-name="dah_category_radio_name"
+               t-att-value="product_category.id"
+               t-att-checked="selected_product_category == product_category.id"
+               t-att-data-dah-filter-url="keep('/shop/category/' + slug(product_category), product_category=0, page=0)"/>
+        <span t-out="product_category.name"/>
+    </label>
+</template>
+<template id="dah_shop_category_branch" name="Shop category tree">
+    <t t-set="dah_category_children" t-value="dah_product_categories.filtered(lambda item: item.parent_id == product_category)"/>
+    <details t-if="dah_category_children" class="dah-shop-category-branch"
+             t-att-open="'open' if category and product_category in category.parents_and_self else None">
+        <summary>
+            <t t-call="dar_al_hadaya.dah_shop_category_option"/>
+            <i class="fa fa-angle-right" aria-hidden="true"/>
+        </summary>
+        <div class="dah-shop-category-children">
+            <t t-foreach="dah_category_children" t-as="product_category">
+                <t t-call="dar_al_hadaya.dah_shop_category_branch"/>
+            </t>
+        </div>
+    </details>
+    <t t-else="" t-call="dar_al_hadaya.dah_shop_category_option"/>
+</template>
+
 <!-- ══════════════════════════════════════════════════════════════════
      DAR AL HADAYA — SHOP PAGE (/shop)
      Customises the standard website_sale product listing page:
@@ -122,16 +148,10 @@
                 />
                 <span>All Categories</span>
             </label>
-            <label class="dah-shop-filter-check" t-foreach="dah_product_categories" t-as="product_category">
-                <input
-                    type="radio"
-                    name="product_category"
-                    t-att-value="product_category.id"
-                    t-att-checked="selected_product_category == product_category.id"
-                    t-att-data-dah-filter-url="keep('/shop/category/' + slug(product_category), product_category=0, page=0)"
-                />
-                <span t-out="product_category.name"/>
-            </label>
+            <t t-set="dah_category_radio_name" t-value="'product_category'"/>
+            <t t-foreach="dah_product_categories.filtered(lambda item: not item.parent_id or item.parent_id.id not in dah_product_categories.ids)" t-as="product_category">
+                <t t-call="dar_al_hadaya.dah_shop_category_branch"/>
+            </t>
         </section>
     </xpath>
 
@@ -261,13 +281,10 @@
                         t-att-data-dah-filter-url="keep('/shop', product_category=0, page=0)"/>
                     <span>All Categories</span>
                 </label>
-                <label class="dah-shop-filter-check" t-foreach="dah_product_categories" t-as="product_category">
-                    <input type="radio" name="mobile_product_category"
-                        t-att-value="product_category.id"
-                        t-att-checked="selected_product_category == product_category.id"
-                        t-att-data-dah-filter-url="keep('/shop/category/' + slug(product_category), product_category=0, page=0)"/>
-                    <span t-out="product_category.name"/>
-                </label>
+                <t t-set="dah_category_radio_name" t-value="'mobile_product_category'"/>
+                <t t-foreach="dah_product_categories.filtered(lambda item: not item.parent_id or item.parent_id.id not in dah_product_categories.ids)" t-as="product_category">
+                    <t t-call="dar_al_hadaya.dah_shop_category_branch"/>
+                </t>
             </section>
 
             <section class="dah-shop-filter-section dah-mobile-price-range" t-if="opt_wsale_filter_price">
