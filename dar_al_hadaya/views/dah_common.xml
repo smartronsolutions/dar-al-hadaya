@@ -164,8 +164,8 @@
                                 <button class="dah-mobile-nav-row dah-mobile-submenu-toggle" type="button" aria-expanded="false"><i class="fa fa-share-alt"/><span>SOCIAL MEDIA</span><i class="fa fa-angle-right dah-mobile-row-arrow"/></button>
                                 <div class="dah-mobile-submenu dah-mobile-social-submenu">
                                     <a id="dah_mobile_wa_link" href="https://wa.me/97433344765" target="_blank" rel="noopener"><i class="fa fa-whatsapp"/><span>WhatsApp</span></a>
-                                    <a href="https://www.instagram.com/daralhadaya" target="_blank" rel="noopener"><i class="fa fa-instagram"/><span>Instagram</span></a>
-                                    <a href="https://www.tiktok.com/@daralhadaya" target="_blank" rel="noopener"><svg class="dah-tiktok-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.2 3c.35 2.15 1.55 3.43 3.8 3.56v3.06a8.28 8.28 0 0 1-3.76-1.1v6.13a6.18 6.18 0 1 1-5.34-6.12v3.14a3.08 3.08 0 1 0 2.22 2.96V3h3.08Z"/></svg><span>TikTok</span></a>
+                                    <a href="https://www.instagram.com/daralhadaya_?stkn=bG81Yzlzd214NWpp&amp;utm_source=qr" target="_blank" rel="noopener"><i class="fa fa-instagram"/><span>Instagram</span></a>
+                                    <a href="https://www.tiktok.com/@daralhadaya_?_r=1&amp;_t=ZS-99WA0H6OQD3" target="_blank" rel="noopener"><svg class="dah-tiktok-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.2 3c.35 2.15 1.55 3.43 3.8 3.56v3.06a8.28 8.28 0 0 1-3.76-1.1v6.13a6.18 6.18 0 1 1-5.34-6.12v3.14a3.08 3.08 0 1 0 2.22 2.96V3h3.08Z"/></svg><span>TikTok</span></a>
                                     <a href="https://www.facebook.com/share/1Bmkr4Q92N/?mibextid=wwXIfr" target="_blank" rel="noopener"><i class="fa fa-facebook"/><span>Facebook</span></a>
                                 </div>
                             </div>
@@ -266,8 +266,8 @@
                         <p>Thoughtful gifts for every occasion. Personalized with love, delivered with care.</p>
                         <div class="dah_footer_socials">
                             <a href="https://wa.me/97433344765" id="dah_footer_social_wa" aria-label="WhatsApp" target="_blank" rel="noopener"><i class="fa fa-whatsapp"/></a>
-                            <a href="https://www.instagram.com/daralhadaya" aria-label="Instagram" target="_blank" rel="noopener"><i class="fa fa-instagram"/></a>
-                            <a href="https://www.tiktok.com/@daralhadaya" aria-label="TikTok" target="_blank" rel="noopener">
+                            <a href="https://www.instagram.com/daralhadaya_?stkn=bG81Yzlzd214NWpp&amp;utm_source=qr" aria-label="Instagram" target="_blank" rel="noopener"><i class="fa fa-instagram"/></a>
+                            <a href="https://www.tiktok.com/@daralhadaya_?_r=1&amp;_t=ZS-99WA0H6OQD3" aria-label="TikTok" target="_blank" rel="noopener">
                                 <svg class="dah-tiktok-icon" viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M15.2 3c.35 2.15 1.55 3.43 3.8 3.56v3.06a8.28 8.28 0 0 1-3.76-1.1v6.13a6.18 6.18 0 1 1-5.34-6.12v3.14a3.08 3.08 0 1 0 2.22 2.96V3h3.08Z"/>
                                 </svg>
@@ -315,9 +315,9 @@
 
                 <nav class="dah_footer_mobile_socials" aria-label="Social media links">
                     <a href="https://wa.me/97433344765" id="dah_footer_mobile_social_wa" aria-label="WhatsApp" target="_blank" rel="noopener"><i class="fa fa-whatsapp"/></a>
-                    <a href="https://www.instagram.com/daralhadaya" aria-label="Instagram" target="_blank" rel="noopener"><i class="fa fa-instagram"/></a>
+                    <a href="https://www.instagram.com/daralhadaya_?stkn=bG81Yzlzd214NWpp&amp;utm_source=qr" aria-label="Instagram" target="_blank" rel="noopener"><i class="fa fa-instagram"/></a>
                     <a href="https://www.facebook.com/share/1Bmkr4Q92N/?mibextid=wwXIfr" aria-label="Facebook" target="_blank" rel="noopener"><i class="fa fa-facebook"/></a>
-                    <a href="https://www.tiktok.com/@daralhadaya" aria-label="TikTok" target="_blank" rel="noopener"><svg class="dah-tiktok-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.2 3c.35 2.15 1.55 3.43 3.8 3.56v3.06a8.28 8.28 0 0 1-3.76-1.1v6.13a6.18 6.18 0 1 1-5.34-6.12v3.14a3.08 3.08 0 1 0 2.22 2.96V3h3.08Z"/></svg></a>
+                    <a href="https://www.tiktok.com/@daralhadaya_?_r=1&amp;_t=ZS-99WA0H6OQD3" aria-label="TikTok" target="_blank" rel="noopener"><svg class="dah-tiktok-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.2 3c.35 2.15 1.55 3.43 3.8 3.56v3.06a8.28 8.28 0 0 1-3.76-1.1v6.13a6.18 6.18 0 1 1-5.34-6.12v3.14a3.08 3.08 0 1 0 2.22 2.96V3h3.08Z"/></svg></a>
                 </nav>
 
                 <div class="dah_footer_bottom">

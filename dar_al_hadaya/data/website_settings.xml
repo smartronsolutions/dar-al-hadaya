@@ -3,8 +3,8 @@
     <record id="website.default_website" model="website">
         <field name="shop_ppr">4</field>
         <field name="shop_ppg">20</field>
-        <field name="social_instagram">https://www.instagram.com/daralhadaya</field>
-        <field name="social_tiktok">https://www.tiktok.com/@daralhadaya</field>
+        <field name="social_instagram">https://www.instagram.com/daralhadaya_?stkn=bG81Yzlzd214NWpp&amp;utm_source=qr</field>
+        <field name="social_tiktok">https://www.tiktok.com/@daralhadaya_?_r=1&amp;_t=ZS-99WA0H6OQD3</field>
         <field name="social_facebook">https://www.facebook.com/share/1Bmkr4Q92N/?mibextid=wwXIfr</field>
     </record>
     <function model="website" name="_dah_configure_shop_layout"/>
