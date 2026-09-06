@@ -1817,7 +1817,7 @@ body:has(.dah_page) .toast:has(.o_cart_product_image) {
     font-weight: 500 !important;
 }
 
-/* Home and Shop product-card buttons: navy filled reference style with a golden border. */
+/* Home and Shop product-card buttons: navy filled reference style with a cream border. */
 .dah_home .dah_btn_order,
 .o_wsale_products_page .dah-shop-order-button {
     width: min(90%, 220px);
@@ -1825,7 +1825,7 @@ body:has(.dah_page) .toast:has(.o_cart_product_image) {
     min-height: 36px;
     padding: 7px 20px;
     gap: 7px;
-    border: 1.5px solid var(--dah-gold) !important;
+    border: 1.5px solid #ead8b8 !important;
     border-radius: 999px !important;
     background: #203874 !important;
     background-image: linear-gradient(180deg, #294789 0%, #192f68 100%) !important;
@@ -1840,7 +1840,7 @@ body:has(.dah_page) .toast:has(.o_cart_product_image) {
 .o_wsale_products_page .dah-shop-order-button span { color: #fff !important; }
 .dah_home .dah_btn_order:hover,
 .o_wsale_products_page .dah-shop-order-button:hover {
-    border-color: #D9B85A !important;
+    border-color: #ead8b8 !important;
     background: #1c3470 !important;
     background-image: linear-gradient(180deg, #315094 0%, #1c3470 100%) !important;
     color: #fff !important;
