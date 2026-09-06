@@ -33,7 +33,7 @@
         <t t-set="dah_video_embed_url" t-value="dah_video_data and dah_video_data['url']"/>
     </xpath>
     <xpath expr="//div[hasclass('carousel-inner')]/t[@t-foreach='product_images']" position="before">
-        <div t-if="dah_video_embed_url" class="carousel-item dah-product-video-slide h-100 w-100 text-center active">
+        <div t-if="dah_video_embed_url" class="carousel-item dah-product-video-slide active">
             <div t-att-class="'dah-product-video-frame' + (' dah-product-video-upload' if dah_video_data['type'] == 'upload' else '')">
                 <video t-if="dah_video_data['type'] == 'upload'"
                        t-att-src="dah_video_embed_url"
@@ -52,7 +52,7 @@
         </div>
     </xpath>
     <xpath expr="//div[hasclass('carousel-inner')]/t[@t-foreach='product_images']/div" position="attributes">
-        <attribute name="t-attf-class">carousel-item h-100 w-100 text-center#{' active' if product_image_first and not dah_video_embed_url else ''}</attribute>
+        <attribute name="t-attf-class">carousel-item text-center#{' active' if product_image_first and not dah_video_embed_url else ''}</attribute>
     </xpath>
     <xpath expr="//div[hasclass('o_carousel_product_outer')]/t[@t-if='len(product_images) &gt; 1']" position="attributes">
         <attribute name="t-if">dah_video_embed_url or len(product_images) &gt; 1</attribute>
