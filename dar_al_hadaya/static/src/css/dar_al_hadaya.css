@@ -1312,8 +1312,13 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
 .o_wsale_product_page #o-carousel-product .o_carousel_product_outer .carousel-inner {
     aspect-ratio: auto !important; height: auto !important;
 }
-/* Video slide: override Bootstrap h-100 so the carousel-item itself drives 9:16 height */
-.o_wsale_product_page .o_carousel_product_outer .carousel-item { border-radius: 12px; height: auto !important; }
+/* Video slide: override Bootstrap h-100 so the carousel-item itself drives 9:16 height.
+   min-height:0 !important also neutralizes Odoo's CarouselSlider interaction, which
+   injects inline min-height equal to the tallest slide (the 9:16 video) on every slide —
+   that inline style was the white space below images. */
+.o_wsale_product_page .o_carousel_product_outer .carousel-item {
+    border-radius: 12px; height: auto !important; min-height: 0 !important;
+}
 .o_wsale_product_page .o_carousel_product_outer .dah-product-video-slide {
     width: 100% !important; height: auto !important;
     aspect-ratio: 9 / 16 !important;
@@ -1361,11 +1366,11 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     .o_wsale_product_page #product_detail_main > #product_details {
         flex: 0 0 auto; width: 100%; max-width: 100%;
     }
-    .o_wsale_product_page #product_details { padding: 18px 20px 0; background: #fff; }
-    .o_wsale_product_page #o-carousel-product { flex-direction: column; }
+    .o_wsale_product_page #product_details { padding: 14px 20px 0; background: #fff; }
+    .o_wsale_product_page #o-carousel-product { flex-direction: column; margin-bottom: 0 !important; }
     .o_wsale_product_page .o_carousel_product_indicators {
         flex: none; display: flex; flex-direction: row; max-height: none; overflow-x: auto;
-        width: 100%; margin: 10px 0 0; padding: 0 0 8px; order: 2;
+        width: 100%; margin: 8px 0 0; padding: 0 0 4px; order: 2;
     }
     .o_wsale_product_page .o_carousel_product_indicators li { flex: 0 0 auto; margin: 0 8px 0 0; }
     .o_wsale_product_page .o_carousel_product_outer { order: 1; width: 100%; border-width: 1px 0; }
@@ -1476,7 +1481,7 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     .o_wsale_product_page #product_detail { padding-inline: 0; }
     .o_wsale_product_page #product_detail_main { display: flex; margin: 0; }
     .o_wsale_product_page .o_wsale_product_images { width: 100%; padding: 0; }
-    .o_wsale_product_page #product_details { width: 100%; padding: 14px 16px 0; }
+    .o_wsale_product_page #product_details { width: 100%; padding: 10px 16px 0; }
     .o_wsale_product_page .o_carousel_product_outer { border-radius: 0; }
     .o_wsale_product_page .o_carousel_product_outer .carousel-item { border-radius: 0; }
     .o_wsale_product_page .o_carousel_product_outer .product_detail_img {
@@ -1486,7 +1491,7 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     .o_wsale_product_page .o_carousel_product_indicators {
         position: static !important;
         width: 100% !important; max-width: 100%; margin: 0 !important;
-        padding: 12px 16px !important; display: flex !important;
+        padding: 8px 16px 4px !important; display: flex !important;
         flex: 0 0 auto; max-height: none; justify-content: flex-start;
         gap: 8px; overflow-x: auto; overflow-y: hidden;
         border: 0; border-radius: 0; background: #fff;
@@ -1510,7 +1515,7 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     .o_wsale_product_page .o_carousel_product_indicators li .o_product_video_thumb,
     .o_wsale_product_page .dah-product-video-indicator .fa { display: block !important; }
     .o_wsale_product_page .o_carousel_product_indicators li img { object-fit: contain; }
-    .o_wsale_product_page .o_wsale_product_details_content_section_title h1 { margin-top: 4px; font-family: var(--dah-serif); font-size: 1.35rem; }
+    .o_wsale_product_page .o_wsale_product_details_content_section_title h1 { margin-top: 0; font-family: var(--dah-serif); font-size: 1.35rem; }
     .o_wsale_product_page .o_wsale_product_details_content_section_price .price,
     .o_wsale_product_page .o_wsale_product_details_content_section_price .product_price { font-size: 1.3rem; }
     .dah-product-tabs { width: 100%; margin-top: 12px; padding: 0 16px; background: #fff; }
