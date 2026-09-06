@@ -1305,7 +1305,8 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     flex: 1; min-width: 0; border: 1px solid #eee9e1; border-radius: 12px;
     overflow: hidden; background: #fff;
 }
-.o_wsale_product_page .o_carousel_product_outer .carousel-item { border-radius: 12px; }
+.o_wsale_product_page .o_carousel_product_outer .carousel-item { border-radius: 12px; height: auto !important; }
+.o_wsale_product_page .o_carousel_product_outer .dah-product-video-slide { aspect-ratio: 9 / 16; }
 .o_wsale_product_page .dah-product-video-frame {
     width: min(100%, 360px); height: auto; aspect-ratio: 9 / 16; min-height: 0; margin-inline: auto; position: relative; display: flex;
     align-items: center; justify-content: center; overflow: hidden;
@@ -1316,12 +1317,13 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; border: 0; display: block;
     object-fit: cover; background: #000;
 }
+/* Upload video: same 9:16 box as embed — video stays inside the carousel slide */
 .o_wsale_product_page .dah-product-video-frame.dah-product-video-upload {
-    width: 100%; height: auto; aspect-ratio: auto; background: transparent;
+    width: 100%; height: auto; aspect-ratio: 9 / 16; background: #000;
 }
 .o_wsale_product_page .dah-product-video-upload video {
-    position: static; width: auto; max-width: 100%; height: auto;
-    max-height: 80svh; object-fit: contain; background: transparent;
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: contain; background: #000;
 }
 .o_wsale_product_page .dah-product-video-indicator {
     display: grid !important; place-items: center; color: #132254;
@@ -1332,15 +1334,6 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     z-index: 1; font-size: 25px; line-height: 1; color: #132254;
     background: #fff; border-radius: 50%; padding: 2px;
     box-shadow: 0 1px 5px rgba(0, 0, 0, .2); pointer-events: none;
-}
-.o_wsale_product_page .o_carousel_product_outer .product_detail_img {
-    display: block; width: 100%; height: clamp(420px, 43vw, 600px); max-height: 600px;
-    object-fit: contain; object-position: center; background: #fff;
-}
-.o_wsale_product_page .o_carousel_product_outer .carousel-control-prev i,
-.o_wsale_product_page .o_carousel_product_outer .carousel-control-next i {
-    width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
-    font-size: 17px; color: var(--dah-ink);
 }
 @media (max-width: 991px) {
     .o_wsale_product_page #product_detail { width: 100%; max-width: none; padding-inline: 0; }
@@ -1364,8 +1357,17 @@ body { background: var(--dah-bg); color: var(--dah-ink); font-family: var(--dah-
     .o_wsale_product_page .dah-product-video-frame iframe,
     .o_wsale_product_page .dah-product-video-frame video { min-height: 0; border-radius: 0; }
     .o_wsale_product_page .o_carousel_product_outer .product_detail_img {
-        width: 100%; height: min(78vw, 620px); max-height: none; object-fit: contain;
+        width: 100%; height: auto; aspect-ratio: 4 / 5; max-height: none; object-fit: contain;
     }
+}
+.o_wsale_product_page .o_carousel_product_outer .product_detail_img {
+    display: block; width: 100%; height: auto; aspect-ratio: 4 / 5;
+    object-fit: contain; object-position: center; background: #fff;
+}
+.o_wsale_product_page .o_carousel_product_outer .carousel-control-prev i,
+.o_wsale_product_page .o_carousel_product_outer .carousel-control-next i {
+    width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 17px; color: var(--dah-ink);
 }
 
 /* ── Tabs ────────────────────────────────────────────────────────── */
