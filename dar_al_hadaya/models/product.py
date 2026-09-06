@@ -7,6 +7,16 @@ from odoo import _, api, fields, models
 from odoo.fields import Domain
 
 
+DAH_DEFAULT_SHIPPING_RETURNS = (
+    '<p>Orders are carefully inspected, packaged and dispatched within 2-3 working days.</p>'
+    '<p>Free delivery is available on all orders above QAR 200. For orders below this amount '
+    'a delivery fee applies and is shown at checkout.</p>'
+    '<p>If you are not completely satisfied with your order, we accept returns within 14 days '
+    'of delivery, provided the item is unused and in its original packaging. Personalized items '
+    'cannot be returned, except in case of damage or a production error.</p>'
+)
+
+
 class Website(models.Model):
     _inherit = 'website'
 
@@ -16,6 +26,12 @@ class Website(models.Model):
         website = self.env.ref('website.default_website', raise_if_not_found=False)
         if website:
             website.write({'shop_ppr': 4, 'shop_ppg': 20})
+        # Pre-fill the standard Shipping & Returns copy on products that have none.
+        products = self.env['product.template'].sudo().search([
+            '|', ('shipping_returns', '=', False), ('shipping_returns', '=', ''),
+        ])
+        if products:
+            products.write({'shipping_returns': DAH_DEFAULT_SHIPPING_RETURNS})
         return True
 
     @staticmethod
@@ -309,6 +325,17 @@ class ProductTemplate(models.Model):
         help='Upload an MP4/WebM video owned by your business.',
     )
     dah_video_filename = fields.Char(string='Video Filename')
+    shipping_returns = fields.Html(
+        string='Shipping & Returns',
+        default=DAH_DEFAULT_SHIPPING_RETURNS,
+        sanitize=True,
+        help='Shown on the product page in the "Shipping & Returns" tab.',
+    )
+
+    def _dah_shipping_returns(self):
+        """Return the Shipping & Returns copy, with the standard fallback."""
+        self.ensure_one()
+        return (self.shipping_returns or DAH_DEFAULT_SHIPPING_RETURNS).strip()
 
     def _dah_video_data(self):
         """Describe the first gallery video selected by the product manager."""

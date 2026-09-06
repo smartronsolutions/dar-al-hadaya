@@ -43,6 +43,12 @@
                            invisible="dah_video_type != 'upload'"/>
                     <field name="dah_video_filename" invisible="1"/>
                 </group>
+                <group string="Shipping &amp; Returns">
+                    <field name="shipping_returns"
+                           widget="html"
+                           colspan="2"
+                           placeholder="Enter shipping and returns information..."/>
+                </group>
                 <group string="Details, Contents &amp; Size">
                     <field name="dah_details_contents"
                            string="Details, Contents &amp; Size"
