@@ -190,9 +190,15 @@
                             <button class="dah-desktop-nav-toggle" type="button">OCCASIONS <i class="fa fa-angle-down"/></button>
                             <div class="dah-desktop-nav-dropdown"><a t-foreach="dah_navigation_occasions" t-as="occasion" t-att-href="'/shop?occasion=%s' % occasion.id" t-out="occasion.name"/></div>
                         </div>
-                        <a t-att-href="dah_custom_gifts and '/shop/category/%s' % slug(dah_custom_gifts) or '/shop'">CUSTOM GIFTS</a>
-                        <a t-att-href="dah_islamic_gifts and '/shop/category/%s' % slug(dah_islamic_gifts) or '/shop'">ISLAMIC GIFTS</a>
-                        <a t-att-href="dah_new_baby and '/shop/category/%s' % slug(dah_new_baby) or '/shop'">NEW BABY</a>
+                        <div class="dah-desktop-nav-group">
+                            <button class="dah-desktop-nav-toggle" type="button">CATEGORY <i class="fa fa-angle-down"/></button>
+                            <div class="dah-desktop-nav-dropdown dah-desktop-category-tree">
+                                <a href="/shop">All Products</a>
+                                <t t-foreach="dah_mobile_categories.filtered(lambda item: not item.parent_id or item.parent_id.id not in dah_mobile_categories.ids)" t-as="dah_category">
+                                    <t t-call="dar_al_hadaya.dah_mobile_category_branch"/>
+                                </t>
+                            </div>
+                        </div>
                         <a href="/contactus">CONTACT US</a>
                     </div>
                 </div>

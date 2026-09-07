@@ -26,14 +26,14 @@
     </xpath>
 </template>
 
-<!-- Render the optional YouTube video as the first product-detail gallery item. -->
-<template id="dar_al_hadaya_product_video_carousel" inherit_id="website_sale.shop_product_carousel" name="Dar Al Hadaya Product Video First">
+<!-- Show product photos first, followed by the optional video. -->
+<template id="dar_al_hadaya_product_video_carousel" inherit_id="website_sale.shop_product_carousel" name="Dar Al Hadaya Product Video Last">
     <xpath expr="//t[@t-set='product_carousel_block_name']" position="before">
         <t t-set="dah_video_data" t-value="product._dah_video_data()"/>
         <t t-set="dah_video_embed_url" t-value="dah_video_data and dah_video_data['url']"/>
     </xpath>
-    <xpath expr="//div[hasclass('carousel-inner')]/t[@t-foreach='product_images']" position="before">
-        <div t-if="dah_video_embed_url" class="carousel-item dah-product-video-slide active">
+    <xpath expr="//div[hasclass('carousel-inner')]/t[@t-foreach='product_images']" position="after">
+        <div t-if="dah_video_embed_url" t-att-class="'carousel-item dah-product-video-slide' + (' active' if not product_images else '')">
             <div t-att-class="'dah-product-video-frame' + (' dah-product-video-upload' if dah_video_data['type'] == 'upload' else '')">
                 <video t-if="dah_video_data['type'] == 'upload'"
                        t-att-src="dah_video_embed_url"
@@ -52,7 +52,7 @@
         </div>
     </xpath>
     <xpath expr="//div[hasclass('carousel-inner')]/t[@t-foreach='product_images']/div" position="attributes">
-        <attribute name="t-attf-class">carousel-item text-center#{' active' if product_image_first and not dah_video_embed_url else ''}</attribute>
+        <attribute name="t-attf-class">carousel-item text-center#{' active' if product_image_first else ''}</attribute>
     </xpath>
     <xpath expr="//div[hasclass('o_carousel_product_outer')]/t[@t-if='len(product_images) &gt; 1']" position="attributes">
         <attribute name="t-if">dah_video_embed_url or len(product_images) &gt; 1</attribute>
@@ -63,19 +63,19 @@
     <xpath expr="//div[@t-ignore='True']" position="attributes">
         <attribute name="t-if">dah_video_embed_url or len(product_images) &gt; 1</attribute>
     </xpath>
-    <xpath expr="//div[@t-ignore='True']/ol/li[@t-foreach='product_images']" position="before">
+    <xpath expr="//div[@t-ignore='True']/ol/li[@t-foreach='product_images']" position="after">
         <li t-if="dah_video_embed_url"
-            class="align-top position-relative active dah-product-video-indicator"
+            t-att-class="'align-top position-relative dah-product-video-indicator' + (' active' if not product_images else '')"
             data-bs-target="#o-carousel-product"
-            data-bs-slide-to="0"
+            t-att-data-bs-slide-to="len(product_images)"
             aria-label="Play product video">
             <img t-att-src="website.image_url(product, 'image_128')" alt="" loading="lazy"/>
             <i class="fa fa-play-circle" aria-hidden="true"></i>
         </li>
     </xpath>
     <xpath expr="//div[@t-ignore='True']/ol/li[@t-foreach='product_images']" position="attributes">
-        <attribute name="t-attf-class">align-top position-relative {{'active' if product_image_first and not dah_video_embed_url else ''}}</attribute>
-        <attribute name="t-att-data-bs-slide-to">str(product_image_index + (1 if dah_video_embed_url else 0))</attribute>
+        <attribute name="t-attf-class">align-top position-relative {{'active' if product_image_first else ''}}</attribute>
+        <attribute name="t-att-data-bs-slide-to">str(product_image_index)</attribute>
     </xpath>
 </template>
 
